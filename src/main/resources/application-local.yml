@@ -1,1 +1,21 @@
+spring:
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/examManager"
+    username: postgres
+    password: ENC(iioVwoRA1T6D3yZ7gM/aMA==)
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
+jasypt:
+  encryptor:
+    password: ${JASYPT_ENCRYPTOR_PASSWORD:}
+    algorithm: PBEWithMD5AndDES
+    iv-generator-classname:  "org.jasypt.iv.NoIvGenerator"
