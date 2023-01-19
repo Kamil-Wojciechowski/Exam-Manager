@@ -1,13 +1,9 @@
 package com.wojcka.exammanager.models.user.group;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.wojcka.exammanager.models.user.role.Role;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import lombok.*;
 
 @Data
 @Builder
@@ -19,11 +15,12 @@ public class GroupRole {
     @GeneratedValue
     private Integer id;
 
+    @JsonBackReference
     @ManyToOne
-    private Group groupRoleId;
+    @JoinColumn(name = "group_id")
+    private Group group;
 
     @ManyToOne
-    private Role roleId;
-
-    private boolean system;
+    @JoinColumn(name = "role_id")
+    private Role role;
 }

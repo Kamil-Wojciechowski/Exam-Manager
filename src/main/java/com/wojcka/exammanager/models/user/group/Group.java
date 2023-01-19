@@ -1,9 +1,12 @@
 package com.wojcka.exammanager.models.user.group;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import lombok.*;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Data
 @Builder
@@ -18,4 +21,16 @@ public class Group {
     private String name;
 
     private String description;
+
+    @OneToMany
+    @JoinTable(
+            name = "_group_roles",
+            joinColumns = {
+                    @JoinColumn(name = "group_id")
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "id")
+            }
+    )
+    private List<GroupRole> groupRole;
 }

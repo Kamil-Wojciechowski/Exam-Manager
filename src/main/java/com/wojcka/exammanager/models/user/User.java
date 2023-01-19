@@ -1,11 +1,17 @@
 package com.wojcka.exammanager.models.user;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.wojcka.exammanager.models.user.group.GroupRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+//import org.springframework.security.core.GrantedAuthority;
+//import org.springframework.security.core.authority.SimpleGrantedAuthority;
+//import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,7 +24,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity(name = "_users")
-public class User implements UserDetails {
+public class User implements UserDetails
+{
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -40,7 +47,17 @@ public class User implements UserDetails {
     private boolean enabled;
 
     @OneToMany
-    private List<UserRole> roles;
+    @JoinTable(
+            name = "_user_groups",
+            joinColumns = {
+                    @JoinColumn(name = "user_id")
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "id")
+            }
+
+    )
+    private List<UserGroup> roleGroups;
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -49,7 +66,13 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        List<GrantedAuthority> result = new ArrayList<>();
+        for (UserGroup roleGroup : getRoleGroups()) {
+            for(GroupRole groupRole : roleGroup.getGroup().getGroupRole()) {
+                result.add(new SimpleGrantedAuthority(groupRole.getRole().getName()));
+            }
+        }
+        return result;
     }
 
     @Override
