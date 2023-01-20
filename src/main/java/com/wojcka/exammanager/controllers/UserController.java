@@ -3,12 +3,12 @@ package com.wojcka.exammanager.controllers;
 import com.wojcka.exammanager.models.user.User;
 import com.wojcka.exammanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestClientException;
 
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -18,8 +18,8 @@ public class UserController {
     private UserRepository userRepository;
 
     @GetMapping
-    private User user() {
-        return userRepository.findById(UUID.fromString("15cc2df4-c84a-4cb7-9793-7176294d91c4")).orElseThrow(
-                () -> new RestClientException(null, null));
+    private ResponseEntity<User> user() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return ResponseEntity.ok(user);
     }
 }

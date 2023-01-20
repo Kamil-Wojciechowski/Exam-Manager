@@ -1,4 +1,5 @@
 spring:
+  secret: ENC(P3kOwo9KxOw4EpD3OfkCc1MWSRbgx4o+U9Hq5EwOX7lXNnTvuiylVbU+eYkd3pW+0hn07De5ZXtxxDtJzhoIr1mBaVFMP93k7a6CTkv4UKY=)
   datasource:
     url: "jdbc:postgresql://localhost:5432/examManager"
     username: postgres
@@ -11,6 +12,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        enable_lazy_load_no_trans: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
@@ -19,3 +21,12 @@ jasypt:
     password: ${JASYPT_ENCRYPTOR_PASSWORD:}
     algorithm: PBEWithMD5AndDES
     iv-generator-classname:  "org.jasypt.iv.NoIvGenerator"
+
+default:
+  firstname: admin
+  lastname: admin
+  email: "admin@admin.com"
+  password: ENC(/pQjnvWX9WJAvfWv+qIF4gmmqwHd9bK0)
+
+token:
+  time: 1440000

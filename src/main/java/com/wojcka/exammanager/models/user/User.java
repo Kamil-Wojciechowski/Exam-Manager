@@ -1,17 +1,15 @@
 package com.wojcka.exammanager.models.user;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.wojcka.exammanager.models.user.group.GroupRole;
 import jakarta.persistence.*;
+import jakarta.transaction.Transactional;
 import lombok.*;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-//import org.springframework.security.core.GrantedAuthority;
-//import org.springframework.security.core.authority.SimpleGrantedAuthority;
-//import org.springframework.security.core.userdetails.UserDetails;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -30,20 +28,18 @@ public class User implements UserDetails
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(length = 30)
     private String firstname;
 
+    @Column(length = 30)
     private String lastname;
 
     private String password;
-
     private String email;
 
-    private String sessionId;
-
+    private UUID sessionId;
     private boolean expired;
-
     private boolean locked;
-
     private boolean enabled;
 
     @OneToMany
@@ -82,17 +78,17 @@ public class User implements UserDetails
 
     @Override
     public boolean isAccountNonExpired() {
-        return this.expired;
+        return !this.expired;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return this.locked;
+        return !this.locked;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return false;
+        return true;
     }
 
     @Override
