@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.component;
+package com.wojcka.exammanager.components;
 
 import com.wojcka.exammanager.models.user.User;
 import com.wojcka.exammanager.repositories.UserRepository;

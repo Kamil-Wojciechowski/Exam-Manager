@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.config;
+package com.wojcka.exammanager.configs;
 
 import com.wojcka.exammanager.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;

@@ -4,6 +4,7 @@ import com.wojcka.exammanager.models.user.group.GroupRole;
 import jakarta.persistence.*;
 import jakarta.transaction.Transactional;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.security.core.GrantedAuthority;
@@ -55,7 +56,7 @@ public class User implements UserDetails
     )
     private List<UserGroup> roleGroups;
 
-    @CreatedDate
+    @CreationTimestamp
     private LocalDateTime createdAt;
     @UpdateTimestamp
     private LocalDateTime updatedAt;

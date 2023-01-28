@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.controllers.responses;
+package com.wojcka.exammanager.controllers.auth.responses;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

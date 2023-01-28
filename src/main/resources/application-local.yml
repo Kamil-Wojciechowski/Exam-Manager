@@ -15,6 +15,17 @@ spring:
         enable_lazy_load_no_trans: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+    auth:
+      expiration:
+        recovery: 28800
+        activation: 1440000
+
+  mail:
+    host: smtp.mailtrap.io
+    port: 587
+    username: ENC(/17myW0JDmmnqmlfkp6HZgiAz3VdYnCQ)
+    password: ENC(vSoWV62csWe2M13U8vjlV+BP+RsbdlZn)
+    from: service@exam.pl
 
 jasypt:
   encryptor:
@@ -27,6 +38,3 @@ default:
   lastname: admin
   email: "admin@admin.com"
   password: ENC(/pQjnvWX9WJAvfWv+qIF4gmmqwHd9bK0)
-
-token:
-  time: 1440000

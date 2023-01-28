@@ -1,7 +1,6 @@
-package com.wojcka.exammanager.config;
+package com.wojcka.exammanager.configs;
 
-import com.wojcka.exammanager.config.filters.JwtAuthenticationFilter;
-import jakarta.servlet.Filter;
+import com.wojcka.exammanager.configs.filters.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
