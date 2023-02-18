@@ -2,6 +2,7 @@ package com.wojcka.exammanager.services.auth;
 
 import com.wojcka.exammanager.components.EmailComponent;
 import com.wojcka.exammanager.controllers.auth.requests.AuthenticationRequest;
+import com.wojcka.exammanager.controllers.auth.requests.RecoveryRequest;
 import com.wojcka.exammanager.controllers.auth.responses.AuthenticationResponse;
 import com.wojcka.exammanager.controllers.responses.GenericResponse;
 import com.wojcka.exammanager.models.token.Token;
@@ -13,6 +14,7 @@ import com.wojcka.exammanager.services.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.jasypt.util.text.StrongTextEncryptor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
@@ -27,13 +29,14 @@ public class AuthenticationService {
     @Value("spring.auth.expiration.recovery")
     private Long recoveryExpiration;
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
     private final TokenRepository tokenRepository;
 
     private final StrongTextEncryptor textEncryptor;
+
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -42,7 +45,7 @@ public class AuthenticationService {
                 )
         );
 
-        var user = repository.findByEmail(request.getEmail()).orElseThrow();
+        var user = userRepository.findByEmail(request.getEmail()).orElseThrow();
         var jwtToken = jwtService.generateToken(user);
 
         return AuthenticationResponse.builder()
@@ -50,15 +53,18 @@ public class AuthenticationService {
                 .build();
     }
 
+    private String encryptString(String key, String token) {
+        textEncryptor.setPassword(key);
+        return textEncryptor.encrypt(token);
+    }
+
     public GenericResponse recovery(String email) {
-        User user = repository.findByEmail(email).orElseThrow();
+        User user = userRepository.findByEmail(email).orElseThrow();
 
         String keyUUID = UUID.randomUUID().toString();
         String secretUUID = UUID.randomUUID().toString();
 
-
-        textEncryptor.setPassword(secretUUID);
-        String encryptedKey = textEncryptor.encrypt(keyUUID);
+        String encryptedKey = encryptString(keyUUID, secretUUID);
 
         tokenRepository.save(Token.builder()
                 .tokenType(TokenType.RECOVERY)
@@ -70,6 +76,21 @@ public class AuthenticationService {
 
         EmailComponent.sendEmail(user.getEmail(), "Recovery", keyUUID + " | " + secretUUID);
 
-        return GenericResponse.builder().code(201).status("CREATED").data("Email has been send").build();
+        return GenericResponse.builder().code(HttpStatus.CREATED.value()).status(HttpStatus.CREATED.toString()).data("Email has been send").build();
+    }
+
+    public GenericResponse recovery(String key, String token, RecoveryRequest request) {
+
+        String encryptedKey = encryptString(key, token);
+
+        Token tokenObj = tokenRepository.findByHashedToken(encryptedKey).orElseThrow();
+
+        User user = tokenObj.getUser();
+
+        user.setPassword(request.getPassword());
+
+        userRepository.save(user);
+
+        return GenericResponse.builder().code(HttpStatus.OK.value()).status(HttpStatus.OK.toString()).data("Password has been updated!").build();
     }
 }

@@ -2,6 +2,7 @@ package com.wojcka.exammanager.controllers.auth;
 
 
 import com.wojcka.exammanager.controllers.auth.requests.AuthenticationRequest;
+import com.wojcka.exammanager.controllers.auth.requests.RecoveryRequest;
 import com.wojcka.exammanager.controllers.auth.responses.AuthenticationResponse;
 import com.wojcka.exammanager.controllers.responses.GenericResponse;
 import com.wojcka.exammanager.services.auth.AuthenticationService;
@@ -25,5 +26,10 @@ public class AuthenticationController {
     @PostMapping("recovery/{email}")
     public ResponseEntity<GenericResponse> startRecovery(@RequestParam("email") String email) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.recovery(email));
+    }
+
+    @PostMapping("recovery/{key}/{token}")
+    public ResponseEntity<GenericResponse> completeRecovery(@RequestParam("key") String key, @RequestParam("token") String token, @RequestBody RecoveryRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.recovery(key, token, request));
     }
 }
