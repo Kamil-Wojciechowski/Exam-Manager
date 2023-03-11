@@ -21,11 +21,11 @@ spring:
         activation: 1440000
 
   mail:
+    from: service@exam.pl
     host: smtp.mailtrap.io
     port: 587
     username: ENC(/17myW0JDmmnqmlfkp6HZgiAz3VdYnCQ)
     password: ENC(vSoWV62csWe2M13U8vjlV+BP+RsbdlZn)
-    from: service@exam.pl
 
 jasypt:
   encryptor:
@@ -38,3 +38,6 @@ default:
   lastname: admin
   email: "admin@admin.com"
   password: ENC(/pQjnvWX9WJAvfWv+qIF4gmmqwHd9bK0)
+
+token:
+  time: 3600

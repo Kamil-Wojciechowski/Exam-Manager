@@ -1,27 +1,27 @@
 package com.wojcka.exammanager.components;
 
 
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
-public class EmailComponent {
-
-    @Value("spring.mail.from")
+@Service
+public class EmailService {
+    @Value("${spring.mail.from}")
     private static String from;
+    @Autowired
+    private JavaMailSender mailSender;
 
-    private static final JavaMailSender emailSender = new JavaMailSenderImpl();
-
-    public static void sendEmail(String to, String subject, String text) {
+    public void sendEmail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(from);
         message.setTo(to);
         message.setSubject(subject);
-        message.setText(text);
+        message.setText(body);
 
-        emailSender.send(message);
+        mailSender.send(message);
     }
 }
