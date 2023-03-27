@@ -1,6 +1,6 @@
 package com.wojcka.exammanager.controllers;
 
-import com.wojcka.exammanager.models.user.User;
+import com.wojcka.exammanager.models.token.user.User;
 import com.wojcka.exammanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("api/v1/users")
 public class UserController {
 
     @Autowired

@@ -1,16 +1,14 @@
 package com.wojcka.exammanager.models.token;
 
-import com.wojcka.exammanager.models.user.User;
+import com.wojcka.exammanager.models.token.user.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
 @Data
+@ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

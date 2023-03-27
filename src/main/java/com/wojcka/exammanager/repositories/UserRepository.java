@@ -1,8 +1,6 @@
 package com.wojcka.exammanager.repositories;
 
-import com.wojcka.exammanager.models.user.User;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.wojcka.exammanager.models.token.user.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

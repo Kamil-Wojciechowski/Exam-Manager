@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.components;
+package com.wojcka.exammanager.components.email;
 
 
 
@@ -9,13 +9,13 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
-public class EmailService {
+public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.from}")
-    private static String from;
+    private String from;
     @Autowired
     private JavaMailSender mailSender;
 
-    public void sendEmail(String to, String subject, String body) {
+    public Boolean sendEmail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(from);
         message.setTo(to);
@@ -23,5 +23,7 @@ public class EmailService {
         message.setText(body);
 
         mailSender.send(message);
+
+        return true;
     }
 }

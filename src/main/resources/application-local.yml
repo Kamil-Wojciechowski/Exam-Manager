@@ -3,8 +3,11 @@ spring:
   datasource:
     url: "jdbc:postgresql://localhost:5432/examManager"
     username: postgres
-    password: ENC(iioVwoRA1T6D3yZ7gM/aMA==)
+    password: ENC(ilU8dNCkKethiJikVXvXNSt+lXqQsgj3)
     driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: never
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,12 +22,13 @@ spring:
       expiration:
         recovery: 28800
         activation: 1440000
+    defer-datasource-initialization: true
 
   mail:
     from: service@exam.pl
     host: smtp.mailtrap.io
     port: 587
-    username: ENC(/17myW0JDmmnqmlfkp6HZgiAz3VdYnCQ)
+    username: ENC(U2u8L8ogfjujhZGSNFaGQ+j5hgZcXABe)
     password: ENC(vSoWV62csWe2M13U8vjlV+BP+RsbdlZn)
 
 jasypt:
@@ -34,10 +38,11 @@ jasypt:
     iv-generator-classname:  "org.jasypt.iv.NoIvGenerator"
 
 default:
+  initialize: True
   firstname: admin
   lastname: admin
   email: "admin@admin.com"
-  password: ENC(/pQjnvWX9WJAvfWv+qIF4gmmqwHd9bK0)
+  password: ENC(Pmb3vs0CDM8+yh5GkBsTpAjmNLoDtyiZ)
 
 token:
   time: 3600

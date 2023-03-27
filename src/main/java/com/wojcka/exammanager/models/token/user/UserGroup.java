@@ -1,14 +1,12 @@
-package com.wojcka.exammanager.models.user;
+package com.wojcka.exammanager.models.token.user;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.wojcka.exammanager.models.user.group.Group;
+import com.wojcka.exammanager.models.token.user.group.Group;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
+@ToString
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,10 +18,10 @@ public class UserGroup {
 
     @JsonBackReference
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", foreignKey=@ForeignKey(name = "FK_user_id"))
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "group_id")
+    @JoinColumn(name = "group_id", referencedColumnName = "id",  foreignKey=@ForeignKey(name = "FK_group_id"))
     private Group group;
 }

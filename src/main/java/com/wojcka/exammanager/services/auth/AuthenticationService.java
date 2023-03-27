@@ -1,6 +1,6 @@
 package com.wojcka.exammanager.services.auth;
 
-import com.wojcka.exammanager.components.EmailService;
+import com.wojcka.exammanager.components.email.EmailService;
 import com.wojcka.exammanager.controllers.auth.requests.AuthenticationRequest;
 import com.wojcka.exammanager.controllers.auth.requests.RecoveryRequest;
 import com.wojcka.exammanager.controllers.auth.responses.AuthenticationResponse;
@@ -8,7 +8,7 @@ import com.wojcka.exammanager.controllers.responses.GenericResponse;
 import com.wojcka.exammanager.language.PolishLanguage;
 import com.wojcka.exammanager.models.token.Token;
 import com.wojcka.exammanager.models.token.TokenType;
-import com.wojcka.exammanager.models.user.User;
+import com.wojcka.exammanager.models.token.user.User;
 import com.wojcka.exammanager.repositories.TokenRepository;
 import com.wojcka.exammanager.repositories.UserRepository;
 import com.wojcka.exammanager.services.JwtService;
@@ -39,6 +39,9 @@ public class AuthenticationService {
     private final TokenRepository tokenRepository;
 
     private final StrongTextEncryptor textEncryptor = new StrongTextEncryptor();
+
+    @Autowired
+    private EmailService emailService;
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
         authenticationManager.authenticate(
@@ -80,8 +83,6 @@ public class AuthenticationService {
                 .createdAt(LocalDateTime.now())
                 .expirationDate(LocalDateTime.now().plusMinutes(recoveryExpiration))
                 .build());
-
-        EmailService emailService = new EmailService();
 
         emailService.sendEmail(user.getEmail(), "Recovery", keyUUID + " | " + secretUUID);
 

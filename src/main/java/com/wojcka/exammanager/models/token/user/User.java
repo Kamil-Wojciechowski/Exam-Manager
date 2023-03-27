@@ -1,12 +1,13 @@
-package com.wojcka.exammanager.models.user;
+package com.wojcka.exammanager.models.token.user;
 
-import com.wojcka.exammanager.models.user.group.GroupRole;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.wojcka.exammanager.models.token.user.group.GroupRole;
 import jakarta.persistence.*;
-import jakarta.transaction.Transactional;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
+@ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -36,6 +38,8 @@ public class User implements UserDetails
     private String lastname;
 
     private String password;
+
+    @Column(unique = true)
     private String email;
 
     private UUID sessionId;
@@ -43,18 +47,13 @@ public class User implements UserDetails
     private boolean locked;
     private boolean enabled;
 
-    @OneToMany
-    @JoinTable(
-            name = "_user_groups",
-            joinColumns = {
-                    @JoinColumn(name = "user_id")
-            },
-            inverseJoinColumns = {
-                    @JoinColumn(name = "id")
-            }
-
+    @OneToMany(
+            targetEntity = UserGroup.class,
+            mappedBy = "user"
     )
-    private List<UserGroup> roleGroups;
+    @JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator.class, property = "id")
+    @JsonIdentityReference(alwaysAsId = true)
+    private List<UserGroup> userRoleGroups;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -64,9 +63,11 @@ public class User implements UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> result = new ArrayList<>();
-        for (UserGroup roleGroup : getRoleGroups()) {
-            for(GroupRole groupRole : roleGroup.getGroup().getGroupRole()) {
-                result.add(new SimpleGrantedAuthority(groupRole.getRole().getName()));
+        for (UserGroup roleGroup : userRoleGroups) {
+            List<GroupRole> groupRoles = roleGroup.getGroup().getGroupRole();
+
+            for(GroupRole groupRole : groupRoles) {
+                result.add(new SimpleGrantedAuthority(groupRole.getRole().getKey()));
             }
         }
         return result;

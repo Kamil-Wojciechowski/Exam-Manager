@@ -24,12 +24,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("recovery/{email}")
-    public ResponseEntity<GenericResponse> startRecovery(@RequestParam("email") String email) {
+    public ResponseEntity<GenericResponse> startRecovery(@PathVariable("email") String email) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.recovery(email));
     }
 
     @PostMapping("recovery/{key}/{token}")
-    public ResponseEntity<GenericResponse> completeRecovery(@RequestParam("key") String key, @RequestParam("token") String token, @RequestBody RecoveryRequest request) {
+    public ResponseEntity<GenericResponse> completeRecovery(@PathVariable("key") String key, @PathVariable("token") String token, @RequestBody RecoveryRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.recovery(key, token, request));
     }
 }
