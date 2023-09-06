@@ -3,7 +3,7 @@ spring:
   datasource:
     url: "jdbc:postgresql://localhost:5432/examManager"
     username: postgres
-    password: ENC(ilU8dNCkKethiJikVXvXNSt+lXqQsgj3)
+    password: ENC(PsReJ/IhdeqSfDoV9feS6KMJB0xwEwOV)
     driver-class-name: org.postgresql.Driver
   sql:
     init:
@@ -42,7 +42,7 @@ default:
   firstname: admin
   lastname: admin
   email: "admin@admin.com"
-  password: ENC(Pmb3vs0CDM8+yh5GkBsTpAjmNLoDtyiZ)
+  password: ENC(+xS5eAMiKlboGpp9oKtk70+2xYSeC6SF)
 
 token:
   time: 3600

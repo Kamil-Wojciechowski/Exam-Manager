@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.controllers.responses;
+package com.wojcka.exammanager.schemas.responses;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;

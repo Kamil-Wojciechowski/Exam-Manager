@@ -1,6 +1,6 @@
 package com.wojcka.exammanager.controllers;
 
-import com.wojcka.exammanager.models.token.user.User;
+import com.wojcka.exammanager.models.User;
 import com.wojcka.exammanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

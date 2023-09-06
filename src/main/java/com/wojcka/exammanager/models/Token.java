@@ -1,6 +1,5 @@
-package com.wojcka.exammanager.models.token;
+package com.wojcka.exammanager.models;
 
-import com.wojcka.exammanager.models.token.user.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

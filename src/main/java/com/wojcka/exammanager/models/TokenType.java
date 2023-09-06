@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.models.token;
+package com.wojcka.exammanager.models;
 
 public enum TokenType {
     RECOVERY,

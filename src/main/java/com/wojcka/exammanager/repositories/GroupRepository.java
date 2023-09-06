@@ -1,6 +1,6 @@
 package com.wojcka.exammanager.repositories;
 
-import com.wojcka.exammanager.models.token.user.group.Group;
+import com.wojcka.exammanager.models.Group;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

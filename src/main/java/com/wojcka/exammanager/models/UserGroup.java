@@ -1,7 +1,6 @@
-package com.wojcka.exammanager.models.token.user;
+package com.wojcka.exammanager.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.wojcka.exammanager.models.token.user.group.Group;
 import jakarta.persistence.*;
 import lombok.*;
 

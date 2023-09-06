@@ -1,6 +1,6 @@
 package com.wojcka.exammanager.repositories;
 
-import com.wojcka.exammanager.models.token.user.User;
+import com.wojcka.exammanager.models.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

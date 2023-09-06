@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.controllers.auth.requests;
+package com.wojcka.exammanager.schemas.requests;
 
 import jakarta.validation.constraints.AssertTrue;
 import lombok.AllArgsConstructor;

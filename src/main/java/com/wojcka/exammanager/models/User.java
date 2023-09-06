@@ -1,9 +1,8 @@
-package com.wojcka.exammanager.models.token.user;
+package com.wojcka.exammanager.models;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.wojcka.exammanager.models.token.user.group.GroupRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

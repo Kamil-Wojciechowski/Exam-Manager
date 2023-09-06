@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.models.token.user.group;
+package com.wojcka.exammanager.models;
 
 import jakarta.persistence.*;
 import lombok.*;

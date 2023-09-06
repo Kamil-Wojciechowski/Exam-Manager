@@ -1,14 +1,14 @@
 package com.wojcka.exammanager.services.auth;
 
 import com.wojcka.exammanager.components.email.EmailService;
-import com.wojcka.exammanager.controllers.auth.requests.AuthenticationRequest;
-import com.wojcka.exammanager.controllers.auth.requests.RecoveryRequest;
-import com.wojcka.exammanager.controllers.auth.responses.AuthenticationResponse;
-import com.wojcka.exammanager.controllers.responses.GenericResponse;
-import com.wojcka.exammanager.language.PolishLanguage;
-import com.wojcka.exammanager.models.token.Token;
-import com.wojcka.exammanager.models.token.TokenType;
-import com.wojcka.exammanager.models.token.user.User;
+import com.wojcka.exammanager.schemas.requests.AuthenticationRequest;
+import com.wojcka.exammanager.schemas.requests.RecoveryRequest;
+import com.wojcka.exammanager.schemas.responses.AuthenticationResponse;
+import com.wojcka.exammanager.schemas.responses.GenericResponse;
+import com.wojcka.exammanager.components.language.PolishLanguage;
+import com.wojcka.exammanager.models.Token;
+import com.wojcka.exammanager.models.TokenType;
+import com.wojcka.exammanager.models.User;
 import com.wojcka.exammanager.repositories.TokenRepository;
 import com.wojcka.exammanager.repositories.UserRepository;
 import com.wojcka.exammanager.services.JwtService;
@@ -71,29 +71,24 @@ public class AuthenticationService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, PolishLanguage.email_not_found.label);
         });
 
-        String keyUUID = UUID.randomUUID().toString();
         String secretUUID = UUID.randomUUID().toString();
-
-        String encryptedKey = encryptString(keyUUID, secretUUID);
 
         tokenRepository.save(Token.builder()
                 .tokenType(TokenType.RECOVERY)
                 .user(user)
-                .hashedToken(encryptedKey)
+                .hashedToken(secretUUID)
                 .createdAt(LocalDateTime.now())
                 .expirationDate(LocalDateTime.now().plusMinutes(recoveryExpiration))
                 .build());
 
-        emailService.sendEmail(user.getEmail(), "Recovery", keyUUID + " | " + secretUUID);
+        emailService.sendEmail(user.getEmail(), "Recovery",  secretUUID);
 
         return GenericResponse.builder().code(HttpStatus.CREATED.value()).status(HttpStatus.CREATED.toString()).data("Email has been send").build();
     }
 
-    public GenericResponse recovery(String key, String token, RecoveryRequest request) {
+    public GenericResponse recovery(String token, RecoveryRequest request) {
 
-        String encryptedKey = encryptString(key, token);
-
-        Token tokenObj = tokenRepository.findByHashedToken(encryptedKey).orElseThrow(() -> {
+        Token tokenObj = tokenRepository.findByHashedToken(token).orElseThrow(() -> {
                     throw new ResponseStatusException(HttpStatus.NOT_FOUND, PolishLanguage.token_not_found.label);
         });
 

@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.language;
+package com.wojcka.exammanager.components.language;
 
 public enum PolishLanguage {
     token_not_found("Nie znaleziono tokenu!"),
