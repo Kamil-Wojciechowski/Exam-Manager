@@ -2,6 +2,7 @@ package com.wojcka.exammanager.models;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIdentityReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
@@ -36,11 +37,13 @@ public class User implements UserDetails
     @Column(length = 30)
     private String lastname;
 
+    @JsonIgnore
     private String password;
 
     @Column(unique = true)
     private String email;
 
+    @JsonIgnore
     private UUID sessionId;
     private boolean expired;
     private boolean locked;
@@ -63,11 +66,7 @@ public class User implements UserDetails
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> result = new ArrayList<>();
         for (UserGroup roleGroup : userRoleGroups) {
-            List<GroupRole> groupRoles = roleGroup.getGroup().getGroupRole();
-
-            for(GroupRole groupRole : groupRoles) {
-                result.add(new SimpleGrantedAuthority(groupRole.getRole().getKey()));
-            }
+            result.add(new SimpleGrantedAuthority(roleGroup.getGroup().getKey()));
         }
         return result;
     }

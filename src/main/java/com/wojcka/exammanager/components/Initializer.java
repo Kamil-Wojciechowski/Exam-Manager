@@ -1,11 +1,9 @@
 package com.wojcka.exammanager.components;
 
-import com.wojcka.exammanager.models.Role;
 import com.wojcka.exammanager.models.User;
 import com.wojcka.exammanager.models.UserGroup;
 import com.wojcka.exammanager.models.Group;
 import com.wojcka.exammanager.repositories.GroupRepository;
-import com.wojcka.exammanager.repositories.RoleRepository;
 import com.wojcka.exammanager.repositories.UserGroupRepository;
 import com.wojcka.exammanager.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +27,6 @@ public class Initializer implements CommandLineRunner {
     private GroupRepository groupRepository;
 
     @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Value("${default.email}")
@@ -51,48 +46,42 @@ public class Initializer implements CommandLineRunner {
 
     @Override
     public void run(String...args) throws Exception {
-        roleInitializer();
-        adminInitializer();
+        if(initialize) {
+            groupInitializer();
+            adminInitializer();
+        }
     }
 
-    public void roleInitializer() throws ClassNotFoundException {
-        if(roleRepository.findAll().isEmpty()) {
-            List<Role> roles = new ArrayList<>();
+    public void groupInitializer() throws ClassNotFoundException {
+        if(groupRepository.findAll().isEmpty()) {
+            List<Group> groups = new ArrayList<>();
 
-            roles.add(Role.builder()
-                    .key("CLASS_CREATE")
-                    .name("Tworzeie klas")
-                    .description("Możliwość tworzenia klas.")
+            groups.add(Group.builder()
+                    .key("TEACHER")
+                    .name("Nauczyciel")
+                    .description("""
+                            Uprawnienia umożliwiające użytkownikowi zarządzanie aplikacją w wszystkich serwisach.""")
                     .build());
 
-            roles.add(Role.builder()
-                    .key("CLASS_READ")
-                    .name("Czytanie klas")
-                    .description("Możliwość wyświetlania list klas.")
+            groups.add(Group.builder()
+                    .key("STUDENT")
+                    .name("Student")
+                    .description("""
+                            Uprawnienia umożliwiające użytkownikowi z konkretnych funkcjonalności""")
                     .build());
 
-            roles.add(Role.builder()
-                    .key("CLASS_FULL")
-                    .name("")
-                    .description("Pełen dostęp do klas"));
-
-            roleRepository.saveAll(roles);
-        }
-
-        if(!roleRepository.existsByKey("Admin")) {
-            Role role = Role.builder()
-                    .key("ADMIN")
-                    .name("Admin")
-                    .description("Pełny dostęp do aplikacji.")
-                    .build();
-
-            roleRepository.save(role);
+            groupRepository.saveAll(groups);
         }
     }
 
     private void adminInitializer() throws ClassNotFoundException {
-        if(initialize && userRepository.findByEmail(email).isEmpty()) {
-            User user = userRepository.save(
+
+        User user;
+
+        try {
+            user = userRepository.findByEmail(email).orElseThrow(NullPointerException::new);
+        } catch (NullPointerException ex) {
+            user = userRepository.save(
                     User.builder()
                             .email(email)
                             .firstname(firstname)
@@ -102,8 +91,10 @@ public class Initializer implements CommandLineRunner {
                             .locked(false)
                             .build()
             );
-            if(groupRepository.findByName("Admin").isEmpty()) {
-                Group group = groupRepository.findByName("Admin")
+        }
+
+            if(!userGroupRepository.existsByUser(user)) {
+                Group group = groupRepository.findByKey("TEACHER")
                         .orElseThrow(NullPointerException::new);
 
                 userGroupRepository.save(
@@ -113,10 +104,7 @@ public class Initializer implements CommandLineRunner {
                                 .group(group)
                                 .build()
                 );
-            }
         }
-
-
     }
 
 }

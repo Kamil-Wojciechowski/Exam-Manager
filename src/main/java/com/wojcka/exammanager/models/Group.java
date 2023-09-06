@@ -18,12 +18,8 @@ public class Group {
 
     private String name;
 
-    private String description;
+    @Column(unique = true)
+    private String key;
 
-    @OneToMany(
-            targetEntity = GroupRole.class,
-            mappedBy = "group",
-            fetch = FetchType.LAZY
-    )
-    private List<GroupRole> groupRole;
+    private String description;
 }

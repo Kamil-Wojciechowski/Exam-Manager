@@ -17,7 +17,7 @@ public class UserGroup {
 
     @JsonBackReference
     @ManyToOne
-    @JoinColumn(name = "user_id", foreignKey=@ForeignKey(name = "FK_user_id"))
+    @JoinColumn(name = "user_id", foreignKey=@ForeignKey(name = "FK_user_id"), unique = true)
     private User user;
 
     @ManyToOne
