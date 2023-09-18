@@ -20,8 +20,8 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     auth:
       expiration:
-        recovery: 28800
-        activation: 1440000
+        activation: 2
+        recovery: 2
     defer-datasource-initialization: true
 
   mail:
@@ -45,4 +45,4 @@ default:
   password: ENC(+xS5eAMiKlboGpp9oKtk70+2xYSeC6SF)
 
 token:
-  time: 3600
+  time: 86400000

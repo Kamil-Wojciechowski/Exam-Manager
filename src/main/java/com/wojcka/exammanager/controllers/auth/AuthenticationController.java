@@ -5,7 +5,7 @@ import com.wojcka.exammanager.schemas.requests.AuthenticationRequest;
 import com.wojcka.exammanager.schemas.requests.RecoveryRequest;
 import com.wojcka.exammanager.schemas.responses.AuthenticationResponse;
 import com.wojcka.exammanager.schemas.responses.GenericResponse;
-import com.wojcka.exammanager.services.auth.AuthenticationService;
+import com.wojcka.exammanager.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +28,13 @@ public class AuthenticationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.recovery(email));
     }
 
-    @PostMapping("recovery/{token}")
+    @PostMapping("recovered/{token}")
     public ResponseEntity<GenericResponse> completeRecovery(@PathVariable("token") String token, @RequestBody RecoveryRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.recovery(token, request));
+        return ResponseEntity.status(HttpStatus.OK).body(service.recovery(token, request));
+    }
+
+    @PostMapping("activation/{token}")
+    public ResponseEntity<GenericResponse> completeActivation(@PathVariable("token") String token) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.activate(token));
     }
 }

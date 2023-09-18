@@ -57,17 +57,17 @@ public class Initializer implements CommandLineRunner {
             List<Group> groups = new ArrayList<>();
 
             groups.add(Group.builder()
-                    .key("TEACHER")
+                    .key("ROLE_TEACHER")
                     .name("Nauczyciel")
                     .description("""
                             Uprawnienia umożliwiające użytkownikowi zarządzanie aplikacją w wszystkich serwisach.""")
                     .build());
 
             groups.add(Group.builder()
-                    .key("STUDENT")
+                    .key("ROLE_STUDENT")
                     .name("Student")
                     .description("""
-                            Uprawnienia umożliwiające użytkownikowi z konkretnych funkcjonalności""")
+                            Uprawnienia umożliwiające korzystanie użytkownikowi z konkretnych funkcjonalności""")
                     .build());
 
             groupRepository.saveAll(groups);
@@ -94,7 +94,7 @@ public class Initializer implements CommandLineRunner {
         }
 
             if(!userGroupRepository.existsByUser(user)) {
-                Group group = groupRepository.findByKey("TEACHER")
+                Group group = groupRepository.findByKey("ROLE_TEACHER")
                         .orElseThrow(NullPointerException::new);
 
                 userGroupRepository.save(

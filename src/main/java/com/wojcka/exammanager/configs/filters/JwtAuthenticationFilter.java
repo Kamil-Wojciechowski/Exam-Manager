@@ -1,6 +1,6 @@
 package com.wojcka.exammanager.configs.filters;
 
-import com.wojcka.exammanager.services.JwtService;
+import com.wojcka.exammanager.services.JwtDecoder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,9 +21,9 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
 
-private final UserDetailsService userDetailsService;
+    private JwtDecoder jwtDecoder;
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -37,10 +37,15 @@ private final UserDetailsService userDetailsService;
         }
 
         jwt = authHeader.substring(7);
-        email = jwtService.extractEmail(jwt);
+        jwtDecoder = new JwtDecoder(jwt);
+
+        email = jwtDecoder.getEmail();
         if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
-            if(jwtService.isTokenValid(jwt, userDetails)) {
+            if(
+                    !jwtDecoder.getExpired()
+                            &&
+                            email.equals(userDetails.getUsername())) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                 authToken.setDetails(

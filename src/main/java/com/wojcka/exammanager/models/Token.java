@@ -30,4 +30,16 @@ public class Token {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    public boolean isTokenRecover() {
+        return this.tokenType.equals(TokenType.RECOVERY);
+    }
+
+    public boolean isTokenActivation() {
+        return this.tokenType.equals(TokenType.ACTIVATION);
+    }
+
+    public boolean isTokenExpired() {
+        return expirationDate.isBefore(LocalDateTime.now());
+    }
 }
