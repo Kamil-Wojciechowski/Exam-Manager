@@ -21,6 +21,7 @@ spring:
     auth:
       expiration:
         activation: 2
+        refresh: 31
         recovery: 2
     defer-datasource-initialization: true
 

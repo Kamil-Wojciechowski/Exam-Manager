@@ -39,6 +39,10 @@ public class Token {
         return this.tokenType.equals(TokenType.ACTIVATION);
     }
 
+    public boolean isTokenRefresh() {
+        return this.tokenType.equals(TokenType.REFRESH_TOKEN);
+    }
+
     public boolean isTokenExpired() {
         return expirationDate.isBefore(LocalDateTime.now());
     }

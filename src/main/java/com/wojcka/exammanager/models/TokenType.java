@@ -2,5 +2,6 @@ package com.wojcka.exammanager.models;
 
 public enum TokenType {
     RECOVERY,
-    ACTIVATION
+    ACTIVATION,
+    REFRESH_TOKEN
 }

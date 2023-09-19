@@ -12,7 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping(value = "/api/v1/auth", produces = {"application/json;charset=UTF-8"})
 @RequiredArgsConstructor
 public class AuthenticationController {
 
@@ -21,6 +21,11 @@ public class AuthenticationController {
     @PostMapping("login")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
         return ResponseEntity.ok(service.authenticate(request));
+    }
+
+    @PostMapping("refresh/{token}")
+    public ResponseEntity<AuthenticationResponse> refreshToken(@PathVariable("token") String token) {
+        return ResponseEntity.ok(service.refresh(token));
     }
 
     @PostMapping("recovery/{email}")

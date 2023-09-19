@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.UUID;
 
 @Service
@@ -34,6 +35,9 @@ public class AuthenticationService {
 
     @Value("${spring.jpa.auth.expiration.activation}")
     private Long activationExpiration;
+
+    @Value("${spring.jpa.auth.expiration.refresh}")
+    private Long refreshExpiration;
 
 
     private final UserRepository userRepository;
@@ -47,22 +51,65 @@ public class AuthenticationService {
     @Autowired
     private EmailService emailService;
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    private User authenticateUser(String email, String password) {
         var authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
+                        email,
+                        password
                 )
         );
 
-        var user = (UserDetails) authentication.getPrincipal();
+        return (User) authentication.getPrincipal();
+    }
+
+    private AuthenticationResponse createAuthenticateResponse(UserDetails user, Token refreshToken) {
         JwtEncoder jwtServiceEncoder = new JwtEncoder(user);
 
         return AuthenticationResponse.builder()
                 .token(jwtServiceEncoder.getToken())
+                .refreshToken(refreshToken.getHashedToken())
                 .issued(jwtServiceEncoder.getIssuedAt())
                 .expires(jwtServiceEncoder.getExpiresAt())
                 .build();
+    }
+
+    private Token buildRefreshToken(User user) {
+        Token refreshToken = Token.builder()
+                .tokenType(TokenType.REFRESH_TOKEN)
+                .hashedToken(Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes()))
+                .expirationDate(LocalDateTime.now().plusDays(refreshExpiration))
+                .user(user)
+                .build();
+
+        return tokenRepository.save(refreshToken);
+    }
+
+    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+        User user = authenticateUser(request.getEmail(), request.getPassword());
+
+       Token refreshToken = buildRefreshToken(user);
+
+        JwtEncoder jwtServiceEncoder = new JwtEncoder(user);
+
+        return createAuthenticateResponse(user, refreshToken);
+    }
+
+    private Token validateRefresh(String token) {
+        Token refreshToken = tokenRepository.findByHashedToken(token).orElseThrow(() -> {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("token_not_found"));
+        });
+
+        if(!refreshToken.isTokenRefresh() & refreshToken.isTokenExpired()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("token_not_found"));
+        }
+
+        return refreshToken;
+    }
+
+    public AuthenticationResponse refresh(String token) {
+        Token refreshToken = validateRefresh(token);
+
+        return createAuthenticateResponse(refreshToken.getUser(), refreshToken);
     }
 
     private String encryptString(String key, String token) {
@@ -90,46 +137,49 @@ public class AuthenticationService {
         return GenericResponse.builder().code(HttpStatus.CREATED.value()).status(HttpStatus.CREATED.toString()).data(Translator.toLocale("email_has_been_send")).build();
     }
 
-    public GenericResponse recovery(String token, RecoveryRequest request) {
-
-        Token tokenObj = tokenRepository.findByHashedToken(token).orElseThrow(() -> {
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("token_not_found"));
+    private Token validateRecovery(String token) {
+        Token recoveryToken = tokenRepository.findByHashedToken(token).orElseThrow(() -> {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("token_not_found"));
         });
 
-        if(!tokenObj.isTokenRecover()) {
+        if(!recoveryToken.isTokenRecover()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("token_wrong_type"));
         }
 
-        if(tokenObj.isTokenExpired()) {
-            tokenRepository.delete(tokenObj);
+        if(recoveryToken.isTokenExpired()) {
+            tokenRepository.delete(recoveryToken);
 
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("token_expired_recovery"));
         }
 
-        User user = tokenObj.getUser();
+        return recoveryToken;
+    }
+    public GenericResponse recovery(String token, RecoveryRequest request) {
+        Token recoveryToken = validateRecovery(token);
+
+        User user = recoveryToken.getUser();
 
         user.setPassword(request.getPassword());
 
         userRepository.save(user);
 
-        tokenRepository.delete(tokenObj);
+        tokenRepository.delete(recoveryToken);
 
         return GenericResponse.builder().code(HttpStatus.OK.value()).status(HttpStatus.OK.toString()).data("Password has been updated!").build();
     }
 
-    public GenericResponse activate(String token) {
-
-        Token tokenObj = tokenRepository.findByHashedToken(token).orElseThrow(() -> {
+    private User validateActivate(String token) {
+        Token activationToken = tokenRepository.findByHashedToken(token).orElseThrow(() -> {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("token_not_found"));
         });
 
-        if(!tokenObj.isTokenActivation()) {
+        if(!activationToken.isTokenActivation()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("token_wrong_type"));
         }
 
-        User user = tokenObj.getUser();
+        User user = activationToken.getUser();
 
-        if(tokenObj.isTokenExpired()) {
+        if(activationToken.isTokenExpired()) {
             String secretUUID = UUID.randomUUID().toString();
 
             tokenRepository.save(Token.builder()
@@ -145,12 +195,21 @@ public class AuthenticationService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("token_expired_activation"));
         }
 
+        tokenRepository.delete(activationToken);
 
+        return user;
+    }
+
+    private void activateUser(User user) {
         user.setEnabled(true);
 
         userRepository.save(user);
+    }
 
-        tokenRepository.delete(tokenObj);
+    public GenericResponse activate(String token) {
+        User user = validateActivate(token);
+
+        activateUser(user);
 
         return GenericResponse.builder().code(HttpStatus.OK.value()).status(HttpStatus.OK.toString()).data(Translator.toLocale("account_activated")).build();
     }
