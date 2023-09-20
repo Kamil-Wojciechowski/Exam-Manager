@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+	Default configuration "inherited" from the reference, which can be found
+	at: https://github.com/spring-projects/spring-boot/blob/v2.4.3/spring-boot-project/spring-boot/src/main/resources/org/springframework/boot/logging/log4j2/log4j2-file.xml
+	Changes made to the default configuration in this example:
+
+	- Add XInclude namespace to allow including separate XML document into
+	  the main configuration.
+	- Add logstash-gelf plugin via 'packages' attribute in Configuration
+	  element.
+-->
+<Configuration xmlns:xi="http://www.w3.org/2001/XInclude" status="WARN" packages="biz.paluch.logging.gelf.log4j2">
+    <Properties>
+        <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx</Property>
+        <Property name="LOG_LEVEL_PATTERN">%5p</Property>
+        <Property name="LOG_DATEFORMAT_PATTERN">yyyy-MM-dd HH:mm:ss.SSS</Property>
+        <Property name="CONSOLE_LOG_PATTERN">%clr{%d{${sys:LOG_DATEFORMAT_PATTERN}}}{faint} %clr{${sys:LOG_LEVEL_PATTERN}} %clr{%pid}{magenta} %clr{---}{faint} %clr{[%15.15t]}{faint} %clr{%-40.40c{1.}}{cyan} [%X{traceId}] [%X{spanId}] %clr{:}{faint} %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
+        <Property name="FILE_LOG_PATTERN">%d{${sys:LOG_DATEFORMAT_PATTERN}} ${sys:LOG_LEVEL_PATTERN} %pid --- [%t] %-40.40c{1.} : %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}</Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT" follow="true">
+            <PatternLayout pattern="${sys:CONSOLE_LOG_PATTERN}" charset="${sys:CONSOLE_LOG_CHARSET}"/>
+        </Console>
+        <!--
+            The Socket appender with GELF layout is the addition to the base
+            configuration. It is an appender to send the logs as GELF messages
+            to a Graylog server.
+        -->
+        <Gelf name="Graylog" host="udp:127.0.0.1" port="12201" version="1.1"
+              extractStackTrace="true" filterStackTrace="true">
+            <!--
+                logstash-gelf allows additional fields with values obtained from log4j2
+                patterns.
+            -->
+            <Field name="application_name" literal="ExamManager"/>
+            <Field name="logger" pattern="%logger"/>
+            <Field name="severity" pattern="%level"/>
+            <Field name="file" pattern="%class"/>
+            <Field name="line" pattern="%line"/>
+            <Field name="method" pattern="%method"/>
+            <Field name="traceId" pattern="%X{traceId}"/>
+            <Field name="spanId" pattern="%X{spanId}"/>
+        </Gelf>
+
+    </Appenders>
+    <Loggers>
+        <Logger name="org.apache.catalina.startup.DigesterFactory" level="error"/>
+        <Logger name="org.apache.catalina.util.LifecycleBase" level="error"/>
+        <Logger name="org.apache.coyote.http11.Http11NioProtocol" level="warn"/>
+        <Logger name="org.apache.sshd.common.util.SecurityUtils" level="warn"/>
+        <Logger name="org.apache.tomcat.util.net.NioSelectorPool" level="warn"/>
+        <Logger name="org.eclipse.jetty.util.component.AbstractLifeCycle" level="error"/>
+        <Logger name="org.hibernate.validator.internal.util.Version" level="warn"/>
+        <Logger name="org.springframework.boot.actuate.endpoint.jmx" level="warn"/>
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="File"/>
+            <!--
+                We also have to include the new appender here.
+                Make sure the ref name matches with the name declared in the
+                appender.
+            -->
+            <AppenderRef ref="Graylog"/>
+        </Root>
+    </Loggers>
+</Configuration>

@@ -1,7 +1,8 @@
 package com.wojcka.exammanager.services;
 
+import com.wojcka.exammanager.components.ObjectToJson;
 import com.wojcka.exammanager.components.email.EmailService;
-import com.wojcka.exammanager.components.language.Translator;
+import com.wojcka.exammanager.components.Translator;
 import com.wojcka.exammanager.schemas.requests.AuthenticationRequest;
 import com.wojcka.exammanager.schemas.requests.RecoveryRequest;
 import com.wojcka.exammanager.schemas.responses.AuthenticationResponse;
@@ -12,6 +13,7 @@ import com.wojcka.exammanager.models.User;
 import com.wojcka.exammanager.repositories.TokenRepository;
 import com.wojcka.exammanager.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.jasypt.util.text.StrongTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +30,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
 
     @Value("${spring.jpa.auth.expiration.recovery}")
@@ -45,11 +48,12 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
 
     private final TokenRepository tokenRepository;
-
     private final StrongTextEncryptor textEncryptor = new StrongTextEncryptor();
 
     @Autowired
     private EmailService emailService;
+
+
 
     private User authenticateUser(String email, String password) {
         var authentication = authenticationManager.authenticate(
@@ -75,6 +79,7 @@ public class AuthenticationService {
 
     private Token buildRefreshToken(User user) {
         Token refreshToken = Token.builder()
+
                 .tokenType(TokenType.REFRESH_TOKEN)
                 .hashedToken(Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes()))
                 .expirationDate(LocalDateTime.now().plusDays(refreshExpiration))
@@ -85,9 +90,14 @@ public class AuthenticationService {
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
+
+        log.info(ObjectToJson.toJson("Authentication request appeard for user: " + request.getEmail()));
+
         User user = authenticateUser(request.getEmail(), request.getPassword());
 
-       Token refreshToken = buildRefreshToken(user);
+        Token refreshToken = buildRefreshToken(user);
+
+        log.info(ObjectToJson.toJson("Token has been created!"));
 
         JwtEncoder jwtServiceEncoder = new JwtEncoder(user);
 
