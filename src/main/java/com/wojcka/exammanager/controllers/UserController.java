@@ -1,7 +1,9 @@
 package com.wojcka.exammanager.controllers;
 
+import com.wojcka.exammanager.components.ObjectToJson;
 import com.wojcka.exammanager.models.User;
 import com.wojcka.exammanager.repositories.UserRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
+@Slf4j
 @RestController
 @RequestMapping("api/v1/users")
 public class UserController {
@@ -22,6 +25,7 @@ public class UserController {
     @GetMapping
     private ResponseEntity<User> user() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
         return ResponseEntity.ok(user);
     }
 }
