@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.components.language;
+package com.wojcka.exammanager.components;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;

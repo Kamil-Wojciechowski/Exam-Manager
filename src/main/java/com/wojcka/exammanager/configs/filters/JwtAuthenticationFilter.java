@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import org.jboss.logging.NDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -42,10 +43,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         email = jwtDecoder.getEmail();
         if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
-            if(
-                    !jwtDecoder.getExpired()
-                            &&
-                            email.equals(userDetails.getUsername())) {
+            if(!jwtDecoder.getExpired() && email.equals(userDetails.getUsername())) {
+                NDC.push(email);
+
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                 authToken.setDetails(
@@ -57,5 +57,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+        NDC.pop();
     }
 }
