@@ -3,6 +3,10 @@ package com.wojcka.exammanager.models;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Data
 @ToString
@@ -23,4 +27,11 @@ public class UserGroup {
     @ManyToOne
     @JoinColumn(name = "group_id", referencedColumnName = "id",  foreignKey=@ForeignKey(name = "FK_group_id"))
     private Group group;
+
+    @Column(updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

@@ -3,6 +3,7 @@ package com.wojcka.exammanager.models;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -28,6 +29,7 @@ public class Token {
 
     private LocalDateTime expirationDate;
 
+    @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
 

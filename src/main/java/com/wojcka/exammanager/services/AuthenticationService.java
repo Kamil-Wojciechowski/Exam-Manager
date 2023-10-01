@@ -12,6 +12,7 @@ import com.wojcka.exammanager.models.TokenType;
 import com.wojcka.exammanager.models.User;
 import com.wojcka.exammanager.repositories.TokenRepository;
 import com.wojcka.exammanager.repositories.UserRepository;
+import com.wojcka.exammanager.services.internal.JwtEncoder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jasypt.util.text.StrongTextEncryptor;

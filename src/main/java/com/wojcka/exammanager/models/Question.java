@@ -30,6 +30,7 @@ public class Question {
     @OneToOne
     public QuestionMetadata questionMetadata;
 
+    @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
 

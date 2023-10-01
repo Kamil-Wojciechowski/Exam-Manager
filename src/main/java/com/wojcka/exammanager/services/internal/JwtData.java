@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.services;
+package com.wojcka.exammanager.services.internal;
 
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;

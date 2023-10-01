@@ -24,7 +24,6 @@ spring:
         refresh: 31
         recovery: 2
     defer-datasource-initialization: true
-
   mail:
     from: service@exam.pl
     host: smtp.mailtrap.io
@@ -44,6 +43,13 @@ default:
   lastname: admin
   email: "admin@admin.com"
   password: ENC(+xS5eAMiKlboGpp9oKtk70+2xYSeC6SF)
+
+server:
+  error:
+    include-stacktrace: never
+  servlet:
+    encoding:
+      charset: UTF-8
 
 token:
   time: 86400000

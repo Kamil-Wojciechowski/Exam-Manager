@@ -1,6 +1,6 @@
 package com.wojcka.exammanager.configs.filters;
 
-import com.wojcka.exammanager.services.JwtDecoder;
+import com.wojcka.exammanager.services.internal.JwtDecoder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

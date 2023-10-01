@@ -1,6 +1,7 @@
 package com.wojcka.exammanager.configs;
 
 import com.wojcka.exammanager.configs.filters.JwtAuthenticationFilter;
+import jakarta.validation.Validation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +40,6 @@ public class SecurityConfiguration {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf()
                 .disable();
-
 
         return http.build();
     }

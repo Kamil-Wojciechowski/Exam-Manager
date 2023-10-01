@@ -1,4 +1,4 @@
-package com.wojcka.exammanager.services;
+package com.wojcka.exammanager.services.internal;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;

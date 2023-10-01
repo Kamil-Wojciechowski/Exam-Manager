@@ -1,9 +1,6 @@
 package com.wojcka.exammanager.models;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -20,7 +17,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
-@ToString
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -49,6 +45,15 @@ public class User implements UserDetails
     private boolean locked;
     private boolean enabled;
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                '}';
+    }
+
+    @JsonIgnore
     @OneToMany(
             targetEntity = UserGroup.class,
             mappedBy = "user"
@@ -57,11 +62,14 @@ public class User implements UserDetails
     @JsonIdentityReference(alwaysAsId = true)
     private List<UserGroup> userRoleGroups;
 
+    @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
+
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
+    @JsonIgnore
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> result = new ArrayList<>();
@@ -74,26 +82,31 @@ public class User implements UserDetails
         return result;
     }
 
+    @JsonIgnore
     @Override
     public String getUsername() {
         return this.email;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
         return !this.expired;
     }
 
+    @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
         return !this.locked;
     }
 
+    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
 
+    @JsonIgnore
     @Override
     public boolean isEnabled() {
         return this.enabled;
