@@ -12,6 +12,7 @@ import com.wojcka.exammanager.models.TokenType;
 import com.wojcka.exammanager.models.User;
 import com.wojcka.exammanager.repositories.TokenRepository;
 import com.wojcka.exammanager.repositories.UserRepository;
+import com.wojcka.exammanager.services.internal.JwtEncoder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jasypt.util.text.StrongTextEncryptor;
@@ -93,7 +94,7 @@ public class AuthenticationService {
 
         log.info(ObjectToJson.toJson("Authentication request appeard for user: " + request.getEmail()));
 
-        User user = authenticateUser(request.getEmail(), request.getPassword());
+        User user = authenticateUser(request.getEmail().toLowerCase(), request.getPassword());
 
         Token refreshToken = buildRefreshToken(user);
 

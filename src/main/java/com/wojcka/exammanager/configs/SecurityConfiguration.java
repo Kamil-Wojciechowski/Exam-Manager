@@ -1,6 +1,7 @@
 package com.wojcka.exammanager.configs;
 
 import com.wojcka.exammanager.configs.filters.JwtAuthenticationFilter;
+import jakarta.validation.Validation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,7 +26,7 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests()
-                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/recovery/**", "/api/v1/auth/recovered/**", "/api/v1/auth/refresh/**")
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/recovery/**", "/api/v1/auth/recovered/**", "/api/v1/auth/refresh/**", "/api/v1/public/**")
                 .permitAll()
                 .requestMatchers("/error")
                 .anonymous()
@@ -39,7 +40,6 @@ public class SecurityConfiguration {
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .csrf()
                 .disable();
-
 
         return http.build();
     }
