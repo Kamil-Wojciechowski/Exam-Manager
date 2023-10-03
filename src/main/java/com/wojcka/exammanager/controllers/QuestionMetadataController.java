@@ -44,7 +44,7 @@ public class QuestionMetadataController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Void> createQuestionMetadata(@PathVariable("id") @Min(1) Long id, @Valid @RequestBody QuestionMetadata request) {
+    public ResponseEntity<Void> createQuestionMetadata(@PathVariable("id") @Min(1) Integer id, @Valid @RequestBody QuestionMetadata request) {
         request.setId(id);
 
         log.info(ObjectToJson.toJson(request));

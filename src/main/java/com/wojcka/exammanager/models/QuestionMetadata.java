@@ -24,7 +24,7 @@ import java.util.List;
 public class QuestionMetadata {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
-    private Long id;
+    private Integer id;
 
     @Valid
     @NotBlank(message = "validation_message_not_blank")

@@ -2,6 +2,8 @@ package com.wojcka.exammanager.models;
 
 import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -24,6 +26,8 @@ import java.util.UUID;
 public class User implements UserDetails
 {
     @Id
+    @Valid
+    @NotNull
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 

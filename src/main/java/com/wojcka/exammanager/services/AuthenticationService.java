@@ -94,7 +94,7 @@ public class AuthenticationService {
 
         log.info(ObjectToJson.toJson("Authentication request appeard for user: " + request.getEmail()));
 
-        User user = authenticateUser(request.getEmail(), request.getPassword());
+        User user = authenticateUser(request.getEmail().toLowerCase(), request.getPassword());
 
         Token refreshToken = buildRefreshToken(user);
 
