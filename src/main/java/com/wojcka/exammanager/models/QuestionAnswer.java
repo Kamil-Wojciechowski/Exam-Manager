@@ -1,5 +1,7 @@
 package com.wojcka.exammanager.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -18,11 +20,14 @@ public class QuestionAnswer {
     @GeneratedValue
     private Integer id;
 
-    @OneToOne
+    @JsonIgnore
+    @ManyToOne
     private Question question;
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private String answer;
 
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private Boolean correct;
 
     @Column(updatable = false)
