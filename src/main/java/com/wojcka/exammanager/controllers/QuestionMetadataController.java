@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("api/v1/question/metadata")
+@RequestMapping("api/v1/questions/metadata")
 public class QuestionMetadataController {
     @Autowired
     private QuestionMetadataService questionMetadataService;

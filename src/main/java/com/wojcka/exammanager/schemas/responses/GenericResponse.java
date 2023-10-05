@@ -19,4 +19,20 @@ public class GenericResponse {
 
     @JsonProperty("data")
     private Object data;
+
+    public static GenericResponse created(Object data) {
+        return GenericResponse.builder()
+                .code(201)
+                .status("CREATED")
+                .data(data)
+                .build();
+    }
+
+    public static GenericResponse ok(Object data) {
+        return GenericResponse.builder()
+                .code(200)
+                .status("OK")
+                .data(data)
+                .build();
+    }
 }

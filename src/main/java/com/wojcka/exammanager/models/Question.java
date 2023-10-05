@@ -1,5 +1,6 @@
 package com.wojcka.exammanager.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
@@ -56,4 +57,9 @@ public class Question {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @JsonIgnore
+    public Boolean isTypeForSingleAnswer() {
+        return questionType.equals(QuestionType.SINGLE_ANSWER) || questionType.equals(QuestionType.FILE) || questionType.equals(QuestionType.OPEN_ANSWER);
+    }
 }
