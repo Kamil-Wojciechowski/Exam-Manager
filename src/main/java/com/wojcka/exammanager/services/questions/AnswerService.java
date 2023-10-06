@@ -41,7 +41,7 @@ public class AnswerService {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
-    private Void validateOwnership(Integer metadataId, Boolean isMethodGet) {
+    private Void validateOwnership(Integer metadataId) {
         if(!questionMetadataRepository.existsById(metadataId)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         }
@@ -52,7 +52,7 @@ public class AnswerService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         });
 
-        if(!isMethodGet && !qmOwnership.isEnoughToAccess()) {
+        if(!qmOwnership.isEnoughToAccess()) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         }
 
@@ -65,14 +65,25 @@ public class AnswerService {
         });
     }
 
-    private Void validateNumberOfQuestionsAndType(Question question, Boolean isCurrentAsAnswer) {
-        if(isCurrentAsAnswer) {
+    private Void validateNumberOfQuestionsAndType(Question question, QuestionAnswer request, Integer answerId) {
+        if(request.getCorrect()) {
             List<QuestionAnswer> answers = question.getAnswers();
 
             answers = answers.stream().filter(item -> item.getCorrect()).collect(Collectors.toList());
 
             if (question.isTypeForSingleAnswer() && (answers.size() == 1)) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
+                if(answerId == null) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
+                }
+
+                QuestionAnswer answer = answerRepository.findById(answerId).orElseThrow(() -> {
+                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
+                });
+
+                if(!answer.getCorrect()) {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
+                }
+
             }
         }
 
@@ -80,16 +91,31 @@ public class AnswerService {
     }
 
     public GenericResponse post(Integer metadataId, Integer questionId, QuestionAnswer request) {
-        validateOwnership(metadataId, false);
+        validateOwnership(metadataId);
 
         Question question = getQuestion(metadataId, questionId);
 
-        validateNumberOfQuestionsAndType(question, request.getCorrect());
+        validateNumberOfQuestionsAndType(question, request, null);
 
         request.setQuestion(Question.builder().id(questionId).build());
 
         request = answerRepository.save(request);
 
         return GenericResponse.created(request);
+    }
+
+    public Void patch(Integer metadataId, Integer questionId, Integer answerId, QuestionAnswer request) {
+        validateOwnership(metadataId);
+
+        Question question = getQuestion(metadataId, questionId);
+
+        validateNumberOfQuestionsAndType(question, request, answerId);
+
+        request.setId(answerId);
+        request.setQuestion(Question.builder().id(questionId).build());
+
+        answerRepository.save(request);
+
+        return null;
     }
 }

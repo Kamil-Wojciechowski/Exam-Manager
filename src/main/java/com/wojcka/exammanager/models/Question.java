@@ -36,7 +36,7 @@ public class Question {
 
     @Valid
     @NotNull
-    public Long points;
+    public Integer points;
 
     @Column(nullable = false)
     public Boolean archived = false;

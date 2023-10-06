@@ -18,8 +18,21 @@ public class AnswerController {
     private AnswerService answerService;
 
     @PostMapping
-    public ResponseEntity<GenericResponse> createAnswer(@PathVariable("metadataId") Integer metadataId, @PathVariable("questionId") Integer questionId, @RequestBody @Valid QuestionAnswer request) {
+    public ResponseEntity<GenericResponse> createAnswer(@PathVariable("metadataId") Integer metadataId,
+                                                        @PathVariable("questionId") Integer questionId,
+                                                        @RequestBody @Valid QuestionAnswer request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(answerService.post(metadataId, questionId, request));
+    }
+
+    @PatchMapping("{id}")
+    public ResponseEntity<Void> updateAnswer(@PathVariable("metadataId") Integer metadataId,
+                                                        @PathVariable("questionId") Integer questionId,
+                                                        @PathVariable("id") Integer answerId,
+                                                        @RequestBody @Valid QuestionAnswer request) {
+        answerService.patch(metadataId, questionId, answerId, request);
+
+        return ResponseEntity.noContent().build();
+
     }
 
 }
