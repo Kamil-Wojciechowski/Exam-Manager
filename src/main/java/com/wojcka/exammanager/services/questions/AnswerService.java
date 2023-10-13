@@ -145,9 +145,13 @@ public class AnswerService {
 
         if(question.questionType.equals(QuestionType.SINGLE_ANSWER) && questionAnswer.getCorrect()) {
             saveQuestionValidation(question, 0);
+        } else if(question.questionType.equals(QuestionType.MULTIPLE_ANSWERS)) {
+            if((question.getAnswers().stream().filter((item) -> item.getCorrect()).toList().size()) == 1 && questionAnswer.getCorrect()) {
+                saveQuestionValidation(question, 0);
+            }
         }
 
-        answerRepository.delete(questionAnswer);
+        answerRepository.deleteById(questionAnswer.getId());
 
         return null;
     }
