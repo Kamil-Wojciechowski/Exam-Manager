@@ -65,30 +65,41 @@ public class AnswerService {
         });
     }
 
-    private Void validateNumberOfQuestionsAndType(Question question, QuestionAnswer request, Integer answerId) {
-        if(request.getCorrect()) {
+    private void saveQuestionValidation(Question question, Integer sizeOfCorrectAnswers) {
+            question.setValid(sizeOfCorrectAnswers >= 1);
+
+            questionRepository.save(question);
+    }
+
+
+    private void validateNumberOfQuestionsAndType(Question question, QuestionAnswer request, QuestionAnswer answer) {
+        if(request.getCorrect() || !answer.equals(null)) {
             List<QuestionAnswer> answers = question.getAnswers();
 
             answers = answers.stream().filter(item -> item.getCorrect()).collect(Collectors.toList());
 
+            Integer size = answers.size();
+
+            if(!answer.getCorrect() && request.getCorrect()) {
+                size++;
+            } else if(answer.getCorrect() && !request.getCorrect()) {
+                size--;
+            }
+
             if (question.isTypeForSingleAnswer() && (answers.size() == 1)) {
-                if(answerId == null) {
+                if(answer.equals(null)) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
                 }
-
-                QuestionAnswer answer = answerRepository.findById(answerId).orElseThrow(() -> {
-                    throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
-                });
 
                 if(!answer.getCorrect()) {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
                 }
-
             }
-        }
 
-        return null;
+            saveQuestionValidation(question, size);
+        }
     }
+
 
     public GenericResponse post(Integer metadataId, Integer questionId, QuestionAnswer request) {
         validateOwnership(metadataId);
@@ -109,7 +120,11 @@ public class AnswerService {
 
         Question question = getQuestion(metadataId, questionId);
 
-        validateNumberOfQuestionsAndType(question, request, answerId);
+        QuestionAnswer questionAnswer = answerRepository.getByIdAndQuestionId(answerId, questionId).orElseThrow(() -> {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
+        });
+
+        validateNumberOfQuestionsAndType(question, request, questionAnswer);
 
         request.setId(answerId);
         request.setQuestion(Question.builder().id(questionId).build());

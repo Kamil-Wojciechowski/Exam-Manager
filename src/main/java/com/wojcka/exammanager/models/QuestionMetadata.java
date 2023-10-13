@@ -1,9 +1,6 @@
 package com.wojcka.exammanager.models;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIdentityReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.fasterxml.jackson.annotation.*;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -40,9 +37,17 @@ public class QuestionMetadata {
     @OneToMany(
             targetEntity = QuestionMetadataOwnership.class,
             mappedBy = "questionMetadata",
-            cascade = CascadeType.ALL
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
     )
     private List<QuestionMetadataOwnership> questionMetadataOwnership;
+
+    @JsonIgnore
+    @OneToMany( targetEntity = Question.class,
+            mappedBy = "questionMetadata",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    public List<Question> question;
 
     @JsonIgnore
     public boolean isIdEmpty() {

@@ -41,14 +41,15 @@ public class Question {
     @Column(nullable = false)
     public Boolean archived = false;
 
-    @OneToOne
+    @Column(columnDefinition = "boolean default false")
+    public Boolean valid = false;
+
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @ManyToOne
     public QuestionMetadata questionMetadata;
 
-    @OneToMany(targetEntity = QuestionAnswer.class,
-            mappedBy = "question",
-            cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, targetEntity = QuestionAnswer.class, mappedBy = "question", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<QuestionAnswer> answers;
 
     @Column(updatable = false)

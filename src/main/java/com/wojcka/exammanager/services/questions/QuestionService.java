@@ -208,6 +208,8 @@ public class QuestionService {
 
                         List<QuestionAnswer> answers = new ArrayList<>();
 
+
+
                         for (String header : csvParser.getHeaderMap().keySet()) {
                             if (header.startsWith("answer")) {
                                 Boolean correct = correctAnswer.contains(header.substring(6, header.length()));
@@ -224,7 +226,12 @@ public class QuestionService {
                             }
                         }
 
+
                         questionAnswerRepository.saveAll(answers);
+
+                        question.setValid(!answers.stream().filter(item -> item.getCorrect()).toList().isEmpty());
+
+                        questionRepository.save(question);
                     }
                 }
 

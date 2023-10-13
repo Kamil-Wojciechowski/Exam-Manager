@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -28,7 +29,7 @@ public class QuestionAnswer {
     private String answer;
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    private Boolean correct;
+    private Boolean correct = false;
 
     @Column(updatable = false)
     @CreationTimestamp
