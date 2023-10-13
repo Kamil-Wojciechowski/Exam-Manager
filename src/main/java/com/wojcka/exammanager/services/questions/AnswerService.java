@@ -133,4 +133,22 @@ public class AnswerService {
 
         return null;
     }
+
+    public Void delete(Integer metadataId, Integer questionId, Integer answerId) {
+        validateOwnership(metadataId);
+
+        Question question = getQuestion(metadataId, questionId);
+
+        QuestionAnswer questionAnswer = answerRepository.getByIdAndQuestionId(answerId, questionId).orElseThrow(() -> {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
+        });
+
+        if(question.questionType.equals(QuestionType.SINGLE_ANSWER) && questionAnswer.getCorrect()) {
+            saveQuestionValidation(question, 0);
+        }
+
+        answerRepository.delete(questionAnswer);
+
+        return null;
+    }
 }

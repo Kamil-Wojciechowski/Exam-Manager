@@ -35,4 +35,14 @@ public class AnswerController {
 
     }
 
+    @DeleteMapping("{id}")
+    public ResponseEntity<Void> updateAnswer(@PathVariable("metadataId") Integer metadataId,
+                                             @PathVariable("questionId") Integer questionId,
+                                             @PathVariable("id") Integer answerId) {
+        answerService.delete(metadataId, questionId, answerId);
+
+        return ResponseEntity.noContent().build();
+
+    }
+
 }
