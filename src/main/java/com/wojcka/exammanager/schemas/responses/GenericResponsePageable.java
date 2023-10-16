@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
 
 @Data
 @Builder
@@ -34,4 +35,17 @@ public class GenericResponsePageable {
 
     @JsonProperty("total")
     private Long total;
+
+    public static GenericResponsePageable ok(Page<Object> data) {
+        return GenericResponsePageable.builder()
+                .code(200)
+                .status("OK")
+                .data(data.get())
+                .page(data.getPageable().getPageNumber())
+                .size(data.getPageable().getPageSize())
+                .hasNext(data.hasNext())
+                .pages(data.getTotalPages())
+                .total(data.getTotalElements())
+                .build();
+    }
 }

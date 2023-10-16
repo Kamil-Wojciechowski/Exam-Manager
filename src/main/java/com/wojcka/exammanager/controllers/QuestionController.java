@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("api/v1/question/metadata/{metadataId}/question")
+@RequestMapping("api/v1/questions/metadata/{metadataId}/questions")
 public class QuestionController {
 
     @Autowired

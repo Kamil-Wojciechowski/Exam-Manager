@@ -1,5 +1,6 @@
 package com.wojcka.exammanager.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
@@ -35,19 +36,20 @@ public class Question {
 
     @Valid
     @NotNull
-    public Long points;
+    public Integer points;
 
     @Column(nullable = false)
     public Boolean archived = false;
 
-    @OneToOne
+    @Column(columnDefinition = "boolean default false")
+    public Boolean valid = false;
+
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @ManyToOne
     public QuestionMetadata questionMetadata;
 
-    @OneToMany(targetEntity = QuestionAnswer.class,
-            mappedBy = "question",
-            cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, targetEntity = QuestionAnswer.class, mappedBy = "question", fetch = FetchType.LAZY, orphanRemoval = true)
     private List<QuestionAnswer> answers;
 
     @Column(updatable = false)
@@ -56,4 +58,9 @@ public class Question {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @JsonIgnore
+    public Boolean isTypeForSingleAnswer() {
+        return questionType.equals(QuestionType.SINGLE_ANSWER) || questionType.equals(QuestionType.FILE) || questionType.equals(QuestionType.OPEN_ANSWER);
+    }
 }
