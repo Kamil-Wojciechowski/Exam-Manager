@@ -53,3 +53,6 @@ server:
 
 token:
   time: 86400000
+
+authorization:
+  path: "keys/springboot3test-558f007eb046.json"
