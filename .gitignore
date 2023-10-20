@@ -30,7 +30,7 @@ build/
 !**/src/test/**/build/
 
 ### Keys ###
-
+**/src/main/**/keys/
 
 ### VS Code ###
 .vscode/
