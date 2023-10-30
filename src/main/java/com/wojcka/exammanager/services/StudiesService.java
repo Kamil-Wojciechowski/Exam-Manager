@@ -147,7 +147,4 @@ public class StudiesService {
 
         studiesRepository.delete(studies);
     }
-
-
-
 }

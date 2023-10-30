@@ -1,6 +1,8 @@
 package com.wojcka.exammanager.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -18,7 +20,9 @@ public class StudiesUser {
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
+    @Valid
     @ManyToOne
+    @NotNull
     private User user;
 
     @Column(columnDefinition = "boolean default false")

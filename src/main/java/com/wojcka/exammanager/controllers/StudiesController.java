@@ -1,6 +1,5 @@
 package com.wojcka.exammanager.controllers;
 
-import com.google.api.services.classroom.model.Course;
 import com.wojcka.exammanager.models.Studies;
 import com.wojcka.exammanager.schemas.responses.GenericResponse;
 import com.wojcka.exammanager.schemas.responses.GenericResponsePageable;
@@ -15,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.List;
 
 @Slf4j
 @RestController
@@ -57,7 +55,8 @@ public class StudiesController {
     }
 
     @GetMapping("/classrooms")
-    public ResponseEntity<List<Course>> getClassrooms() throws IOException {
+    @ResponseBody
+    public ResponseEntity<GenericResponse> getClassrooms() throws IOException {
         return ResponseEntity.ok(googleService.getCourses());
     }
 

@@ -40,6 +40,18 @@ public class User implements UserDetails
     @JsonIgnore
     private String password;
 
+    @JsonIgnore
+    private String googleAccessToken;
+
+    @JsonIgnore
+    private String googleRefreshToken;
+
+    @JsonIgnore
+    private LocalDateTime googleExpiration;
+
+    @JsonIgnore
+    private String googleUserId;
+
     @Column(unique = true)
     private String email;
 
@@ -114,5 +126,9 @@ public class User implements UserDetails
     @Override
     public boolean isEnabled() {
         return this.enabled;
+    }
+
+    public boolean isGoogleExpired() {
+        return LocalDateTime.now().minusSeconds(10).isAfter(this.googleExpiration);
     }
 }
