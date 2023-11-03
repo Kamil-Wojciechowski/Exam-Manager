@@ -23,6 +23,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -220,5 +222,44 @@ public class GoogleService {
 
     private void refreshAccessToken() {
         requestOAuth(null, true);
+    }
+
+    public List<User> getUsersByClassroom(String classroomId) {
+        validateUserGoogle();
+
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(null, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(classroomUrl + "/" + classroomId + "/students", HttpMethod.GET, requestEntity, String.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            try {
+                ArrayList<LinkedHashMap> items = (ArrayList) objectMapper.readValue(response.getBody(), Map.class).get("students");
+
+                ArrayList<User> listOfUsersEmails = new ArrayList<>();
+
+                items.forEach(item -> {
+                   LinkedHashMap profile = (LinkedHashMap) item.get("profile");
+                   LinkedHashMap profileDetails = (LinkedHashMap) profile.get("name");
+
+                    User googleUser = User.builder()
+                            .email(profile.get("emailAddress").toString().toLowerCase())
+                            .firstname((String) profileDetails.get("givenName"))
+                            .lastname((String) profileDetails.get("familyName"))
+                            .enabled(false)
+                            .locked(false)
+                            .expired(false)
+                            .build();
+
+
+                   listOfUsersEmails.add(googleUser);
+                });
+
+                return listOfUsersEmails;
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, Translator.toLocale("internal_server_error"));
+        }
     }
 }

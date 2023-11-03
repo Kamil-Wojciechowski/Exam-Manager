@@ -1,15 +1,19 @@
-package com.wojcka.exammanager.controllers.auth;
+package com.wojcka.exammanager.controllers;
 
 
 import com.wojcka.exammanager.schemas.requests.AuthenticationRequest;
-import com.wojcka.exammanager.schemas.requests.RecoveryRequest;
+import com.wojcka.exammanager.schemas.requests.PasswordRequest;
 import com.wojcka.exammanager.schemas.responses.AuthenticationResponse;
 import com.wojcka.exammanager.schemas.responses.GenericResponse;
 import com.wojcka.exammanager.services.AuthenticationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.net.URLDecoder;
+import java.nio.charset.Charset;
 
 @RestController
 @RequestMapping(value = "/api/v1/auth", produces = {"application/json;charset=UTF-8"})
@@ -28,18 +32,33 @@ public class AuthenticationController {
         return ResponseEntity.ok(service.refresh(token));
     }
 
+
     @PostMapping("recovery/{email}")
     public ResponseEntity<GenericResponse> startRecovery(@PathVariable("email") String email) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.recovery(email));
     }
 
-    @PostMapping("recovered/{token}")
-    public ResponseEntity<GenericResponse> completeRecovery(@PathVariable("token") String token, @RequestBody RecoveryRequest request) {
+    @GetMapping("recovery")
+    public ResponseEntity<Void> checkRecoveryToken(@Param("token") String token) {
+        service.validateRecoveryToken(token);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("recovered")
+    public ResponseEntity<GenericResponse> completeRecovery(@Param("token") String token, @RequestBody PasswordRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(service.recovery(token, request));
     }
 
-    @PostMapping("activation/{token}")
-    public ResponseEntity<GenericResponse> completeActivation(@PathVariable("token") String token) {
-        return ResponseEntity.status(HttpStatus.OK).body(service.activate(token));
+    @GetMapping("activation")
+    public ResponseEntity<Void> checkActivationToken(@Param("token") String token) {
+        service.validateActivationToken(token);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("activation")
+    public ResponseEntity<GenericResponse> completeActivation(@Param("token") String token, @RequestBody PasswordRequest passwordRequest) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.activate(token, passwordRequest));
     }
 }

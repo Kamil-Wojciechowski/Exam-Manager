@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class RecoveryRequest {
+public class PasswordRequest {
     private String password;
 
     private String confirmedPassword;

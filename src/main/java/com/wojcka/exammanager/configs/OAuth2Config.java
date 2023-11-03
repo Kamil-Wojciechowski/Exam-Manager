@@ -31,7 +31,7 @@ public class OAuth2Config {
                 .clientSecret(clientSecret)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .redirectUri(redirectUri)
-                .scope("https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/classroom.courses.readonly", "https://www.googleapis.com/auth/classroom.announcements", "https://www.googleapis.com/auth/classroom.profile.emails" )
+                .scope("https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/classroom.courses.readonly", "https://www.googleapis.com/auth/classroom.announcements", "https://www.googleapis.com/auth/classroom.profile.emails", "https://www.googleapis.com/auth/classroom.rosters.readonly")
                 .authorizationUri("https://accounts.google.com/o/oauth2/auth?access_type=offline&prompt=consent")
                 .tokenUri("https://oauth2.googleapis.com/token")
                 .userInfoUri("https://www.googleapis.com/oauth2/v3/userinfo")

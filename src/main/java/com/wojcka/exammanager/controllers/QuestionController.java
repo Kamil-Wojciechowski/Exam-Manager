@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
@@ -57,6 +58,11 @@ public class QuestionController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/imports")
+    public ResponseEntity<GenericResponse> importQuestionsAndAnswersCSV(@PathVariable("metadataId") Integer metadataId, @RequestParam("file") MultipartFile file) {
+        questionService.importCSV(metadataId, file);
 
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
 }
 

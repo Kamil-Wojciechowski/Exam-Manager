@@ -46,19 +46,15 @@ public class StudiesService {
                 .build();
     }
 
-    private QuestionMetadata getQuestionMetadata(Integer id) {
-        return questionMetadataRepository.findById(id).orElseThrow(() -> {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
-        });
-    }
+//    private QuestionMetadata getQuestionMetadata(Integer id) {
+//        return questionMetadataRepository.findById(id).orElseThrow(() -> {
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
+//        });
+//    }
 
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse post(Studies studies) {
-        QuestionMetadata questionMetadata = getQuestionMetadata(studies.getQuestionMetadata().getId());
-
-        validateOwnership(questionMetadata.getQuestionMetadataOwnership(), true);
-
         studies = studiesRepository.save(studies);
 
         StudiesUser studiesUser = StudiesUser.builder()
@@ -89,46 +85,44 @@ public class StudiesService {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
-    private QuestionMetadataOwnership getOwnershipDetails(List<QuestionMetadataOwnership> questionMetadataOwnership) {
-        try {
-            return questionMetadataOwnership
-                    .stream().filter(item -> item.getUser().getId().equals(getUserFromAuth().getId())).toList().get(0);
-        } catch (Exception ex) {
+//    private QuestionMetadataOwnership getOwnershipDetails(List<QuestionMetadataOwnership> questionMetadataOwnership) {
+//        try {
+//            return questionMetadataOwnership
+//                    .stream().filter(item -> item.getUser().getId().equals(getUserFromAuth().getId())).toList().get(0);
+//        } catch (Exception ex) {
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
+//        }
+//    }
+
+//    private void validateOwnership(List<QuestionMetadataOwnership> questionMetadataOwnership, boolean post) {
+//        QuestionMetadataOwnership ownership = getOwnershipDetails(questionMetadataOwnership);
+//
+//        if(ownership == null || !ownership.isEnoughToAccess()) {
+//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
+//        }
+//
+//        if(!post) {
+//            StudiesUser studiesUser = studiesUserRepository.findByUser(getUserFromAuth()).orElseThrow(() -> {
+//                throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
+//            });
+//
+//            if (!studiesUser.getOwner()) {
+//                throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
+//            }
+//        }
+//    }
+
+    private void validateOwnership(Studies studies) {
+        studiesUserRepository.findByUserAndStudiesAndOwner(getUserFromAuth(), studies, true).orElseThrow(() -> {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-        }
-    }
-
-    private void validateOwnership(List<QuestionMetadataOwnership> questionMetadataOwnership, boolean post) {
-        QuestionMetadataOwnership ownership = getOwnershipDetails(questionMetadataOwnership);
-
-        if(ownership == null || !ownership.isEnoughToAccess()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-        }
-
-        if(!post) {
-            StudiesUser studiesUser = studiesUserRepository.findByUser(getUserFromAuth()).orElseThrow(() -> {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-            });
-
-            if (!studiesUser.getOwner()) {
-                throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-            }
-        }
+        });
     }
 
     @PreAuthorize("hasRole('TEACHER')")
     public void update(Integer id, Studies request) {
         Studies studies = getStudiesById(id);
 
-        if(request.getQuestionMetadata() != null && !request.getQuestionMetadata().getId().equals(studies.getQuestionMetadata().getId())) {
-            QuestionMetadata questionMetadata = getQuestionMetadata(request.getQuestionMetadata().getId());
-
-            validateOwnership(questionMetadata.getQuestionMetadataOwnership(), false);
-        } else {
-            request.setQuestionMetadata(studies.getQuestionMetadata());
-
-            validateOwnership(studies.getQuestionMetadata().getQuestionMetadataOwnership(), false);
-        }
+        validateOwnership(studies);
 
         if(request.getClassroomId() == null && studies.getClassroomId() != null ) {
             request.setClassroomId(studies.getClassroomId());
@@ -143,7 +137,7 @@ public class StudiesService {
     public void delete(Integer id) {
         Studies studies = getStudiesById(id);
 
-        validateOwnership(studies.getQuestionMetadata().getQuestionMetadataOwnership(), false);
+        validateOwnership(studies);
 
         studiesRepository.delete(studies);
     }

@@ -15,7 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
-@RestController("api/v1/studies/{studiesId}/users")
+@RestController
+@RequestMapping("api/v1/studies/{studiesId}/users")
 public class StudiesUserController {
 
     @Autowired
@@ -45,8 +46,14 @@ public class StudiesUserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/import")
+    @PostMapping("/imports/csv")
     public ResponseEntity<GenericResponse> importUsersForStudies(@PathVariable("studiesId") Integer studiesId, @RequestParam("file") MultipartFile file) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(studiesUserService.importUsers(studiesId, file));
+        return ResponseEntity.status(HttpStatus.CREATED).body(studiesUserService.importUsersCsv(studiesId, file));
+    }
+
+    @PostMapping("/imports/google")
+    public ResponseEntity<GenericResponse> importUsersForStudies(@PathVariable("studiesId") Integer studiesId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(studiesUserService.importUsersGoogle(studiesId));
     }
 }
+

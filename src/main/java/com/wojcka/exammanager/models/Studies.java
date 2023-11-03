@@ -29,11 +29,6 @@ public class Studies {
 
     private String classroomId;
 
-    @OneToOne
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    @NotNull
-    private QuestionMetadata questionMetadata;
-
     @Column(updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;

@@ -1,5 +1,6 @@
 package com.wojcka.exammanager.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -28,6 +29,7 @@ public class StudiesUser {
     @Column(columnDefinition = "boolean default false")
     private Boolean owner;
 
+    @JsonIgnore
     @ManyToOne
     private Studies studies;
 
