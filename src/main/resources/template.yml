@@ -1,10 +1,10 @@
 spring:
-  secret: ENC(P3kOwo9KxOw4EpD3OfkCc1MWSRbgx4o+U9Hq5EwOX7lXNnTvuiylVbU+eYkd3pW+0hn07De5ZXtxxDtJzhoIr1mBaVFMP93k7a6CTkv4UKY=)
+  secret:
   datasource:
-    url: "jdbc:postgresql://localhost:5432/examManager"
-    username: postgres
-    password: ENC(PsReJ/IhdeqSfDoV9feS6KMJB0xwEwOV)
-    driver-class-name: org.postgresql.Driver
+    url:
+    username:
+    password:
+    driver-class-name:
   sql:
     init:
       mode: never
@@ -25,11 +25,11 @@ spring:
         recovery: 2
     defer-datasource-initialization: true
   mail:
-    from: service@exam.pl
-    host: smtp.mailtrap.io
-    port: 587
-    username: ENC(U2u8L8ogfjujhZGSNFaGQ+j5hgZcXABe)
-    password: ENC(vSoWV62csWe2M13U8vjlV+BP+RsbdlZn)
+    from:
+    host:
+    port:
+    username:
+    password:
 
 jasypt:
   encryptor:
@@ -38,11 +38,11 @@ jasypt:
     iv-generator-classname:  "org.jasypt.iv.NoIvGenerator"
 
 default:
-  initialize: True
-  firstname: admin
-  lastname: admin
-  email: "admin@admin.com"
-  password: ENC(+xS5eAMiKlboGpp9oKtk70+2xYSeC6SF)
+  initialize:
+  firstname:
+  lastname:
+  email:
+  password:
 
 server:
   error:
@@ -53,3 +53,8 @@ server:
 
 token:
   time: 86400000
+
+google:
+  clientId:
+  clientSecret:
+  redirectUri:

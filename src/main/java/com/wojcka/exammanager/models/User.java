@@ -1,6 +1,8 @@
 package com.wojcka.exammanager.models;
 
 import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -40,11 +42,21 @@ public class User implements UserDetails
     @JsonIgnore
     private String password;
 
+    @JsonIgnore
+    private String googleAccessToken;
+
+    @JsonIgnore
+    private String googleRefreshToken;
+
+    @JsonIgnore
+    private LocalDateTime googleExpiration;
+
+    @JsonIgnore
+    private String googleUserId;
+
     @Column(unique = true)
     private String email;
 
-    @JsonIgnore
-    private UUID sessionId;
     private boolean expired;
     private boolean locked;
     private boolean enabled;
@@ -114,5 +126,10 @@ public class User implements UserDetails
     @Override
     public boolean isEnabled() {
         return this.enabled;
+    }
+
+    @JsonIgnore
+    public boolean isGoogleExpired() {
+        return LocalDateTime.now().minusSeconds(10).isAfter(this.googleExpiration);
     }
 }
