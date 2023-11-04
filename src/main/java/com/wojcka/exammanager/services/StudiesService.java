@@ -26,9 +26,6 @@ public class StudiesService {
     private StudiesRepository studiesRepository;
 
     @Autowired
-    private QuestionMetadataRepository questionMetadataRepository;
-
-    @Autowired
     private StudiesUserRepository studiesUserRepository;
 
     public GenericResponsePageable get(Integer page, Integer size) {
@@ -45,12 +42,6 @@ public class StudiesService {
                 .total(pageable.getTotalElements())
                 .build();
     }
-
-//    private QuestionMetadata getQuestionMetadata(Integer id) {
-//        return questionMetadataRepository.findById(id).orElseThrow(() -> {
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
-//        });
-//    }
 
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
@@ -84,33 +75,6 @@ public class StudiesService {
     private User getUserFromAuth() {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
-
-//    private QuestionMetadataOwnership getOwnershipDetails(List<QuestionMetadataOwnership> questionMetadataOwnership) {
-//        try {
-//            return questionMetadataOwnership
-//                    .stream().filter(item -> item.getUser().getId().equals(getUserFromAuth().getId())).toList().get(0);
-//        } catch (Exception ex) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-//        }
-//    }
-
-//    private void validateOwnership(List<QuestionMetadataOwnership> questionMetadataOwnership, boolean post) {
-//        QuestionMetadataOwnership ownership = getOwnershipDetails(questionMetadataOwnership);
-//
-//        if(ownership == null || !ownership.isEnoughToAccess()) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-//        }
-//
-//        if(!post) {
-//            StudiesUser studiesUser = studiesUserRepository.findByUser(getUserFromAuth()).orElseThrow(() -> {
-//                throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-//            });
-//
-//            if (!studiesUser.getOwner()) {
-//                throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-//            }
-//        }
-//    }
 
     private void validateOwnership(Studies studies) {
         studiesUserRepository.findByUserAndStudiesAndOwner(getUserFromAuth(), studies, true).orElseThrow(() -> {

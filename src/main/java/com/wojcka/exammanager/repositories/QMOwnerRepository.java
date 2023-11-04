@@ -1,6 +1,8 @@
 package com.wojcka.exammanager.repositories;
 
+import com.wojcka.exammanager.models.QuestionMetadata;
 import com.wojcka.exammanager.models.QuestionMetadataOwnership;
+import com.wojcka.exammanager.models.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +17,8 @@ import java.util.UUID;
 public interface QMOwnerRepository extends JpaRepository<QuestionMetadataOwnership, Integer> {
     @Query(value = "select * from _questions_metadata_ownership qmo where qmo.question_metadata_id = :questionMetadataId and qmo.user_id = :userId", nativeQuery = true)
     Optional<QuestionMetadataOwnership> findByUserAndQM(@Param("questionMetadataId") Integer questionMetadata, @Param("userId") UUID user);
+
+    Optional<QuestionMetadataOwnership> findByUserAndAndQuestionMetadata(User user, QuestionMetadata questionMetadata);
 
     @Query(value = "SELECT * from _questions_metadata_ownership qmo where qmo.question_metadata_id = :questionMetadataId", nativeQuery = true)
     Page<QuestionMetadataOwnership> findByQuestionMetadata(@Param("questionMetadataId") Integer questionMetadata, Pageable pageable);

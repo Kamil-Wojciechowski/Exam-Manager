@@ -19,6 +19,9 @@ public interface StudiesUserRepository extends JpaRepository<StudiesUser, Long> 
     Optional<StudiesUser> findByUserAndStudiesAndOwner(User user, Studies studies, Boolean owner);
 
     @Query
+    Optional<StudiesUser> findByUserAndStudies(User user, Studies studies);
+
+    @Query
     Page<StudiesUser> findByStudies(Studies studies, Pageable pageable);
 
     @Query
