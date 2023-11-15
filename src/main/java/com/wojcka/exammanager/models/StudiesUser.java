@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @ToString
@@ -27,11 +28,20 @@ public class StudiesUser {
     private User user;
 
     @Column(columnDefinition = "boolean default false")
-    private Boolean owner;
+    private Boolean owner = false;
 
     @JsonIgnore
     @ManyToOne
     private Studies studies;
+
+    @JsonIgnore
+    @OneToMany(
+            targetEntity = ExamGroup.class,
+            mappedBy = "studiesUser",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<ExamGroup> examGroupList;
 
     @Column(updatable = false)
     @CreationTimestamp

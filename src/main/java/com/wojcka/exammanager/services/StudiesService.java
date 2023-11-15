@@ -2,9 +2,7 @@ package com.wojcka.exammanager.services;
 
 import com.wojcka.exammanager.components.Translator;
 import com.wojcka.exammanager.models.*;
-import com.wojcka.exammanager.repositories.QuestionMetadataRepository;
-import com.wojcka.exammanager.repositories.StudiesRepository;
-import com.wojcka.exammanager.repositories.StudiesUserRepository;
+import com.wojcka.exammanager.repositories.*;
 import com.wojcka.exammanager.schemas.responses.GenericResponse;
 import com.wojcka.exammanager.schemas.responses.GenericResponsePageable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -42,6 +42,8 @@ public class StudiesService {
                 .total(pageable.getTotalElements())
                 .build();
     }
+
+
 
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
@@ -87,10 +89,6 @@ public class StudiesService {
         Studies studies = getStudiesById(id);
 
         validateOwnership(studies);
-
-        if(request.getClassroomId() == null && studies.getClassroomId() != null ) {
-            request.setClassroomId(studies.getClassroomId());
-        }
 
         request.setId(id);
 

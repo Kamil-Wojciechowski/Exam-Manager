@@ -3,7 +3,10 @@ package com.wojcka.exammanager.services.internal;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wojcka.exammanager.components.Translator;
+import com.wojcka.exammanager.models.StudentSubmissions;
+import com.wojcka.exammanager.models.annocument.Annoucment;
 import com.wojcka.exammanager.models.User;
+import com.wojcka.exammanager.models.cousework.CourseWork;
 import com.wojcka.exammanager.repositories.UserRepository;
 import com.wojcka.exammanager.schemas.responses.GenericResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +16,6 @@ import org.springframework.http.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -23,10 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -44,7 +43,6 @@ public class GoogleService {
 
     @Autowired
     private UserRepository userRepository;
-
     private void setHeaderAuthorization(String accessToken) {
         headers.setBearerAuth(accessToken);
     }
@@ -80,19 +78,6 @@ public class GoogleService {
         } else {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, Translator.toLocale("internal_server_error"));
         }
-    }
-
-    public String createAuthorizationURL() {
-        ClientRegistration registration = clientRegistrationRepository.findByRegistrationId("google");
-
-        OAuth2AuthorizationRequest authorizationRequest = OAuth2AuthorizationRequest.authorizationCode()
-                .authorizationUri(registration.getProviderDetails().getAuthorizationUri())
-                .clientId(registration.getClientId())
-                .redirectUri(registration.getRedirectUri()) // Replace with your actual redirect URI
-                .scope(registration.getScopes().toArray(new String[0]))
-                .build();
-
-        return authorizationRequest.getAuthorizationRequestUri();
     }
 
     private User getUserFromAuth() {
@@ -245,6 +230,7 @@ public class GoogleService {
                             .email(profile.get("emailAddress").toString().toLowerCase())
                             .firstname((String) profileDetails.get("givenName"))
                             .lastname((String) profileDetails.get("familyName"))
+                            .googleUserId((String) item.get("userId"))
                             .enabled(false)
                             .locked(false)
                             .expired(false)
@@ -256,10 +242,118 @@ public class GoogleService {
 
                 return listOfUsersEmails;
             } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, Translator.toLocale("internal_server_error"));
             }
         } else {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, Translator.toLocale("internal_server_error"));
+            throw new ResponseStatusException(response.getStatusCode(), response.getBody());
         }
+    }
+
+    public Annoucment createAnnocument(String classroomId, Annoucment annoucment) {
+        validateUserGoogle();
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        HttpEntity<Annoucment> requestEntity = new HttpEntity<>(annoucment, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(classroomUrl + "/" + classroomId + "/announcements", HttpMethod.POST, requestEntity, String.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            try {
+                LinkedHashMap<String, String> items = (LinkedHashMap) objectMapper.readValue(response.getBody(), Map.class);
+
+                annoucment.setId(items.get("id"));
+
+                return annoucment;
+            } catch (JsonProcessingException e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, Translator.toLocale("internal_server_error"));
+            }
+        } else {
+            throw new ResponseStatusException(response.getStatusCode(), response.getBody());
+        }
+    }
+
+    public CourseWork createCourseWork(String classroomId, CourseWork courseWork) {
+        validateUserGoogle();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<CourseWork> requestEntity = new HttpEntity<>(courseWork, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(classroomUrl + "/" + classroomId + "/courseWork", HttpMethod.POST, requestEntity, String.class);
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            try {
+                LinkedHashMap<String, String> items = (LinkedHashMap) objectMapper.readValue(response.getBody(), Map.class);
+
+                courseWork.setId(items.get("id"));
+
+                return courseWork;
+            } catch (JsonProcessingException e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, Translator.toLocale("internal_server_error"));
+            }
+        } else {
+            throw new ResponseStatusException(response.getStatusCode(), response.getBody());
+        }
+    }
+
+    public void deleteCourseWork(String classroomId, String courseWorkId) {
+        validateUserGoogle();
+        HttpEntity<CourseWork> requestEntity = new HttpEntity<>(null, headers);
+
+        ResponseEntity<String>  response = restTemplate.exchange(classroomUrl + "/" + classroomId + "/courseWork/" + courseWorkId, HttpMethod.DELETE, requestEntity, String.class);
+
+        if (response.getStatusCode() != HttpStatus.OK) {
+            throw new ResponseStatusException(response.getStatusCode(), response.getBody());
+        }
+    }
+
+    public List<StudentSubmissions> listAssignments(String classroomId, String courseWorkId) {
+        validateUserGoogle();
+
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<CourseWork> requestEntity = new HttpEntity<>(null, headers);
+
+        ResponseEntity<String> response  = restTemplate.exchange(classroomUrl + "/" + classroomId + "/courseWork/" +courseWorkId + "/studentSubmissions", HttpMethod.GET, requestEntity, String.class);
+
+
+        if (response.getStatusCode() == HttpStatus.OK) {
+            try {
+                List<LinkedHashMap<String, String>> items = (List<LinkedHashMap<String, String>>) objectMapper.readValue(response.getBody(), Map.class).get("studentSubmissions");
+
+                List<StudentSubmissions> submissionsList = new ArrayList<>();
+
+                items.forEach((submissionItem) -> {
+                    submissionsList.add(
+                            StudentSubmissions.builder()
+                                    .id(submissionItem.get("id"))
+                                    .state(submissionItem.get("state"))
+                                    .userId(submissionItem.get("userId"))
+                                    .build()
+                    );
+                });
+
+                return submissionsList;
+            } catch (JsonProcessingException e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, Translator.toLocale("internal_server_error"));
+            }
+        } else {
+            throw new ResponseStatusException(response.getStatusCode(), response.getBody());
+        }
+
+        //TODO: LIST https://developers.google.com/classroom/reference/rest/v1/courses.courseWork.studentSubmissions/list?hl=pl&apix_params=%7B"courseId"%3A"590591522251"%2C"courseWorkId"%3A"637937802917"%7D
+        //TODO: TO FETCH USERS INFO AND THEN CONNECT submissionId in EXAM GROUP in previous class
+    }
+
+    public void publishResults(String classroomId, String courseWorkId, String submissionId, StudentSubmissions studentSubmissions) {
+        validateUserGoogle();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<StudentSubmissions> requestEntity = new HttpEntity<>(studentSubmissions, headers);
+
+        ResponseEntity<String> response = restTemplate.exchange(classroomUrl + "/" + classroomId + "/courseWork/" +courseWorkId + "/studentSubmissions/" + submissionId + "?updateMask=assignedGrade", HttpMethod.PATCH, requestEntity, String.class);
+
+        if (response.getStatusCode() != HttpStatus.OK) {
+            throw new ResponseStatusException(response.getStatusCode(), response.getBody());
+        }
+        //https://developers.google.com/classroom/reference/rest/v1/courses.courseWork.studentSubmissions/patch?hl=pl&apix_params=%7B"courseId"%3A"590591522251"%2C"courseWorkId"%3A"637937802917"%2C"id"%3A"Cg4I4rrx2soEEKW9ucDIEg"%2C"updateMask"%3A"assignedGrade"%2C"resource"%3A%7B"state"%3A"RETURNED"%2C"assignedGrade"%3A20%7D%7D
+        //TODO: Post results to google classroom courseWork
     }
 }

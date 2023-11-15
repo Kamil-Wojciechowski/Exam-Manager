@@ -3,10 +3,7 @@ package com.wojcka.exammanager.services;
 import com.wojcka.exammanager.components.Translator;
 import com.wojcka.exammanager.components.email.EmailService;
 import com.wojcka.exammanager.models.*;
-import com.wojcka.exammanager.repositories.StudiesRepository;
-import com.wojcka.exammanager.repositories.StudiesUserRepository;
-import com.wojcka.exammanager.repositories.TokenRepository;
-import com.wojcka.exammanager.repositories.UserRepository;
+import com.wojcka.exammanager.repositories.*;
 import com.wojcka.exammanager.schemas.responses.GenericResponse;
 import com.wojcka.exammanager.schemas.responses.GenericResponsePageable;
 import com.wojcka.exammanager.services.internal.GoogleService;
@@ -32,7 +29,6 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,10 +48,28 @@ public class StudiesUserService {
     private TokenRepository tokenRepository;
 
     @Autowired
+    private ExamRepository examRepository;
+
+    @Autowired
+    private QuestionRepository questionRepository;
+
+    @Autowired
+    private ExamGroupRepository examGroupRepository;
+
+    @Autowired
+    private ExamGroupQuestionRepository examGroupQuestionRepository;
+
+    @Autowired
     private GoogleService googleService;
 
     @Autowired
     private EmailService emailService;
+
+    @Autowired
+    private UserGroupRepository userGroupRepository;
+
+    @Autowired
+    private GroupRepository groupRepository;
 
     @Value("${spring.jpa.auth.expiration.activation}")
     private Long activationExpiration;
@@ -69,8 +83,8 @@ public class StudiesUserService {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
-    private void validateUser(Boolean action) {
-        StudiesUser studiesUser = studiesUserRepository.findByUser(getUserFromAuth()).orElseThrow(() -> {
+    private void validateUser(Studies studies, Boolean action) {
+        StudiesUser studiesUser = studiesUserRepository.findByUserAndStudies(getUserFromAuth(), studies).orElseThrow(() -> {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
         });
 
@@ -85,9 +99,9 @@ public class StudiesUserService {
         });
     }
     public GenericResponsePageable get(Integer studiesId, Integer page, Integer size) {
-        validateUser(false);
-
         Studies studies = getStudies(studiesId);
+
+        validateUser(studies, false);
 
         Page<StudiesUser> result = studiesUserRepository.findByStudies(studies, PageRequest.of(page,size));
 
@@ -103,15 +117,48 @@ public class StudiesUserService {
                 .build();
     }
 
+    private void checkExam(StudiesUser studiesUser, Studies studies) {
+        List<Exam> examList = examRepository.findAllByStudies(studies);
+
+        examList.forEach(exam -> {
+            if(exam.getStartAt().isAfter(LocalDateTime.now()) && !examGroupRepository.existsExamGroupByExamAndStudiesUser(exam, studiesUser)) {
+                List<Question> questionListPerUser = questionRepository.findAllByQuestionMetadataAndRandomWhereValid(exam.getQuestionMetadata().getId(), exam.getQuestionPerUser());
+
+                ExamGroup examGroup = examGroupRepository.save(
+                        ExamGroup.builder()
+                                .studiesUser(studiesUser)
+                                .exam(exam)
+                                .sent(false)
+                                .build()
+                );
+
+                List<ExamGroupQuestion> examGroupQuestionList = new ArrayList<>();
+
+                questionListPerUser.forEach(question -> {
+                    examGroupQuestionList.add(
+                            ExamGroupQuestion.builder()
+                                    .examGroup(examGroup)
+                                    .question(question)
+                                    .build()
+                    );
+                });
+
+                examGroupQuestionRepository.saveAll(examGroupQuestionList);
+            }
+        });
+    }
+
     @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse post(Integer studiesId, StudiesUser studiesUser) {
-        validateUser(true);
-
         Studies studies = getStudies(studiesId);
+
+        validateUser(studies, true);
 
         studiesUser.setStudies(studies);
 
         studiesUser = studiesUserRepository.save(studiesUser);
+
+        checkExam(studiesUser, studies);
 
         return GenericResponse.created(studiesUser);
     }
@@ -123,9 +170,9 @@ public class StudiesUserService {
     }
 
     public GenericResponse get(Integer studiesId, Integer studiesUserId) {
-        validateUser(true);
-
         Studies studies = getStudies(studiesId);
+
+        validateUser(studies,true);
 
         StudiesUser studiesUser = getStudiesUsserByStudiesAndId(studies, studiesUserId);
 
@@ -135,9 +182,9 @@ public class StudiesUserService {
 
     @PreAuthorize("hasRole('TEACHER')")
     public void delete(Integer studiesId, Integer studiesUserId) {
-        validateUser(true);
-
         Studies studies = getStudies(studiesId);
+
+        validateUser(studies ,true);
 
         StudiesUser studiesUser = getStudiesUsserByStudiesAndId(studies, studiesUserId);
 
@@ -150,9 +197,9 @@ public class StudiesUserService {
     }
 
     public GenericResponse importUsersCsv(Integer studiesId, MultipartFile file) {
-        validateUser(true);
-
         Studies studies = getStudies(studiesId);
+
+        validateUser(studies, true);
         setTextEncryptor();
         List<StudiesUser> studiesUserList = new ArrayList<>();
 
@@ -189,12 +236,22 @@ public class StudiesUserService {
         return GenericResponse.created(studiesUserList);
     }
 
-    @Transactional
-    public StudiesUser processSingleEmail(User googleUser, Studies studies) {
+    private StudiesUser processSingleEmail(User googleUser, Studies studies) {
+        String googleClassroomId = googleUser.getGoogleUserId();
+
         User user = userRepository.findByEmail(googleUser.getEmail()).orElse(googleUser);
 
         if(user.getId() == null) {
             user = userRepository.save(user);
+
+            userGroupRepository.save((
+                    UserGroup.builder()
+                            .user(user)
+                            .group(groupRepository.findByKey("ROLE_STUDENT").orElseThrow(() -> {
+                                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
+                            }))
+                            .build()
+            ));
 
             String secretUUID = UUID.randomUUID().toString();
 
@@ -207,25 +264,40 @@ public class StudiesUserService {
                     .build());
 
             emailService.sendEmail(user.getEmail(), "Activation", URLEncoder.encode(textEncryptor.encrypt(secretUUID), Charset.defaultCharset()));
+        } else if (user.getId() != null && user.getGoogleUserId() == null && googleClassroomId != null) {
+            user.setGoogleUserId(googleClassroomId);
+
+            userRepository.save(user);
         }
 
-        StudiesUser studiesUser = studiesUserRepository.findByUser(user).orElse(StudiesUser.builder()
+        StudiesUser studiesUser = studiesUserRepository.findByUserAndStudies(user, studies).orElse(StudiesUser.builder()
                 .studies(studies)
                 .user(user)
                 .owner(false)
                 .build());
 
-        return studiesUserRepository.save(studiesUser);
+        if(studiesUser.getId() == null) {
+            studiesUser = studiesUserRepository.save(studiesUser);
+
+            checkExam(studiesUser, studies);
+        }
+
+        return studiesUser;
     }
+
+    @Transactional
+    @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse importUsersGoogle(Integer studiesId) {
-        validateUser(true);
         Studies studies = getStudies(studiesId);
+        validateUser(studies, true);
 
         if(studies.getClassroomId() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("classroom_not_provided"));
         }
 
         List<User> listOfUsers = googleService.getUsersByClassroom(studies.getClassroomId());
+
+
 
         List<StudiesUser> listOfProccessed = new ArrayList<>();
 

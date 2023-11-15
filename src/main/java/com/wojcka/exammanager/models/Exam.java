@@ -1,5 +1,6 @@
 package com.wojcka.exammanager.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @ToString
@@ -21,11 +23,25 @@ public class Exam {
     private Long id;
 
     @NotNull
-    @OneToOne
+    @OneToOne(
+            cascade = CascadeType.DETACH
+    )
     private QuestionMetadata questionMetadata;
 
-    @ManyToOne
+    @ManyToOne(
+            cascade = CascadeType.DETACH
+    )
     private Studies studies;
+
+    @JsonIgnore
+    @OneToMany(
+            targetEntity = ExamGroup.class,
+            mappedBy = "exam",
+            cascade = CascadeType.ALL
+    )
+    private List<ExamGroup> examGroupList;
+
+    private String courseWorkId;
 
     @NotEmpty
     private String name;

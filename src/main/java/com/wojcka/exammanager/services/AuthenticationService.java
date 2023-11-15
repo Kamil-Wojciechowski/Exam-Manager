@@ -97,13 +97,17 @@ public class AuthenticationService {
         return tokenRepository.save(refreshToken);
     }
 
-    public AuthenticationResponse authenticate(AuthenticationRequest request) {
+    public AuthenticationResponse authenticate(AuthenticationRequest request, String addressIp) {
 
         log.info(ObjectToJson.toJson("Authentication request appeard for user: " + request.getEmail()));
 
         User user = authenticateUser(request.getEmail().toLowerCase(), request.getPassword());
 
         Token refreshToken = buildRefreshToken(user);
+
+        user.setIpAddress(addressIp);
+
+        userRepository.save(user);
 
         log.info(ObjectToJson.toJson("Token has been created!"));
 

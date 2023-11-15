@@ -34,10 +34,6 @@ public class Question {
     @Enumerated(EnumType.STRING)
     public QuestionType questionType;
 
-    @Valid
-    @NotNull
-    public Integer points;
-
     @Column(nullable = false)
     public Boolean archived = false;
 

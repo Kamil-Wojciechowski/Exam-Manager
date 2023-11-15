@@ -1,5 +1,6 @@
 package com.wojcka.exammanager.controllers;
 
+import com.wojcka.exammanager.models.annocument.Annoucment;
 import com.wojcka.exammanager.models.Exam;
 import com.wojcka.exammanager.schemas.responses.GenericResponse;
 import com.wojcka.exammanager.schemas.responses.GenericResponsePageable;
@@ -33,6 +34,11 @@ public class ExamController {
     @GetMapping("/{examId}")
     public ResponseEntity<GenericResponse> getExam(@PathVariable("studiesId") Integer studiesId, @PathVariable("examId") Integer examId) {
         return ResponseEntity.ok(examService.get(studiesId, examId));
+    }
+
+    @PostMapping("/{examId}/annoucments")
+    public ResponseEntity<GenericResponse> postExamAnnocument(@PathVariable("studiesId") Integer studiesId, @PathVariable("examId") Integer examId, @RequestBody Annoucment annoucment) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(examService.postAnnoucmnet(studiesId, examId, annoucment));
     }
 
     @PatchMapping("/{examId}")
