@@ -4,14 +4,14 @@ spring:
     url:
     username:
     password:
-    driver-class-name:
+    driver-class-name: org.postgresql.Driver
   sql:
     init:
       mode: never
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -20,9 +20,9 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     auth:
       expiration:
-        activation: 2
-        refresh: 31
-        recovery: 2
+        activation:
+        refresh: 3
+        recovery:
     defer-datasource-initialization: true
   mail:
     from:
@@ -30,7 +30,26 @@ spring:
     port:
     username:
     password:
-
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id:
+            client-secret:
+            redirect-uri:
+            scope:
+              - https://www.googleapis.com/auth/classroom.coursework.me
+              - https://www.googleapis.com/auth/classroom.announcements
+              - https://www.googleapis.com/auth/classroom.coursework.students
+              - https://www.googleapis.com/auth/classroom.profile.emails
+              - https://www.googleapis.com/auth/classroom.rosters.readonly
+              - https://www.googleapis.com/auth/classroom.courses.readonly
+              - https://www.googleapis.com/auth/userinfo.profile
+              - https://www.googleapis.com/auth/userinfo.email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth?access_type=offline&prompt=consent
 jasypt:
   encryptor:
     password: ${JASYPT_ENCRYPTOR_PASSWORD:}
@@ -38,7 +57,7 @@ jasypt:
     iv-generator-classname:  "org.jasypt.iv.NoIvGenerator"
 
 default:
-  initialize:
+  initialize: false
   firstname:
   lastname:
   email:
@@ -53,8 +72,3 @@ server:
 
 token:
   time: 86400000
-
-google:
-  clientId:
-  clientSecret:
-  redirectUri:
