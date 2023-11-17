@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.http.*;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
@@ -35,7 +36,7 @@ public class GoogleService {
     private final String classroomUrl = "https://classroom.googleapis.com/v1/courses";
     private final String userUrl = "https://www.googleapis.com/oauth2/v1/userinfo";
     private HttpHeaders headers = new HttpHeaders();
-    private RestTemplate restTemplate = new RestTemplate();
+    private RestTemplate restTemplate = new RestTemplate(new HttpComponentsClientHttpRequestFactory());
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
@@ -348,7 +349,13 @@ public class GoogleService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<StudentSubmissions> requestEntity = new HttpEntity<>(studentSubmissions, headers);
 
-        ResponseEntity<String> response = restTemplate.exchange(classroomUrl + "/" + classroomId + "/courseWork/" +courseWorkId + "/studentSubmissions/" + submissionId + "?updateMask=assignedGrade", HttpMethod.PATCH, requestEntity, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(classroomUrl + "/" + classroomId + "/courseWork/" +courseWorkId + "/studentSubmissions/" + submissionId + "?updateMask=draftGrade", HttpMethod.PATCH, requestEntity, String.class);
+
+        if (response.getStatusCode() != HttpStatus.OK) {
+            throw new ResponseStatusException(response.getStatusCode(), response.getBody());
+        }
+
+        response = restTemplate.exchange(classroomUrl + "/" + classroomId + "/courseWork/" +courseWorkId + "/studentSubmissions/" + submissionId + "?updateMask=assignedGrade", HttpMethod.PATCH, requestEntity, String.class);
 
         if (response.getStatusCode() != HttpStatus.OK) {
             throw new ResponseStatusException(response.getStatusCode(), response.getBody());

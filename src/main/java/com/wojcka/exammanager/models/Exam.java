@@ -1,6 +1,7 @@
 package com.wojcka.exammanager.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -54,6 +55,14 @@ public class Exam {
 
     @NotNull
     private Integer questionPerUser;
+
+    @JsonIgnore
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
+    private Boolean showResults = false;
+
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer points = null;
 
     @Column(updatable = false)
     @CreationTimestamp

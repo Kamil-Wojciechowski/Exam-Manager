@@ -217,11 +217,21 @@ public class ExamService {
         });
     }
     public GenericResponse get(Integer studiesId, Integer examId) {
-        Studies studies = validateStudies(studiesId);
+        Studies studies = fetchStudies(studiesId);
+
+        StudiesUser studiesUser = studiesUserRepository.findByUserAndStudies(getUserFromAuth(), studies).orElseThrow(() -> {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
+        });
 
         Exam exam = getExam(examId, studies);
 
-        validateQuestionMetadata(exam.getQuestionMetadata().getId());
+        ExamGroup examGroup = examGroupRepository.findExamGroupByExamAndStudiesUser(exam, studiesUser).orElseThrow(() -> {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
+        });
+
+        if(!studiesUser.getOwner() & exam.getShowResults()) {
+            exam.setPoints(examGroup.getPoints());
+        }
 
         return GenericResponse.ok(exam);
     }
@@ -255,7 +265,7 @@ public class ExamService {
             } else if (countMissing < 0) {
                 countMissing = Math.abs(countMissing);
 
-                examGroupQuestionRepository.deleteAll(examGroupQuestionRepository.findAllByExamGroup(examGroup ,PageRequest.of(0, countMissing)));
+                examGroupQuestionRepository.deleteAll(examGroupQuestionRepository.findAllByExamGroup(examGroup ,PageRequest.of(0, countMissing)).getContent());
             }
         });
     }
@@ -329,5 +339,37 @@ public class ExamService {
         googleService.createAnnocument(studies.getClassroomId(), annoucment);
 
         return GenericResponse.created(annoucment);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('TEACHER')")
+    public void postResults(Integer studiesId, Integer examId) {
+        Studies studies = validateStudies(studiesId);
+        Exam exam = getExam(examId, studies);
+
+        if(exam.getShowResults()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("exam_already_published"));
+        }
+
+        if(exam.getEndAt().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("exam_results_not_ready"));
+        }
+
+        exam.setShowResults(true);
+        examRepository.save(exam);
+
+        if(studies.getClassroomId() != null && exam.getCourseWorkId() != null) {
+            List<ExamGroup> examGroups = examGroupRepository.findByExam(exam);
+
+            examGroups.forEach((item) -> {
+                if(item.getSubmissionId() != null) {
+                    Integer points =  item.getPoints() == null ? 0 : item.getPoints();
+
+                    StudentSubmissions studentSubmissions = StudentSubmissions.builder().assignedGrade(points).draftGrade(points).state("TURNED_IN").build();
+
+                    googleService.publishResults(studies.getClassroomId(), exam.getCourseWorkId(), item.getSubmissionId(), studentSubmissions);
+                }
+            });
+        }
     }
 }

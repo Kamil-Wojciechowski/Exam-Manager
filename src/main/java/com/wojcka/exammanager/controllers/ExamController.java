@@ -41,6 +41,13 @@ public class ExamController {
         return ResponseEntity.status(HttpStatus.CREATED).body(examService.postAnnoucmnet(studiesId, examId, annoucment));
     }
 
+    @PostMapping("/{examId}/submission")
+    public ResponseEntity<Void> postExamResults(@PathVariable("studiesId") Integer studiesId, @PathVariable("examId") Integer examId) {
+        examService.postResults(studiesId, examId);
+
+        return ResponseEntity.accepted().build();
+    }
+
     @PatchMapping("/{examId}")
     public ResponseEntity<Void> patchExam(@PathVariable("studiesId") Integer studiesId, @PathVariable("examId") Integer examId, @Valid @RequestBody Exam request) {
         examService.patch(studiesId, examId, request);

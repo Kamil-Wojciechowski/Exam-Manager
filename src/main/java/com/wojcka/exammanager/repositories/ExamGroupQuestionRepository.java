@@ -9,8 +9,14 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ExamGroupQuestionRepository extends JpaRepository<ExamGroupQuestion, Long> {
-    List<ExamGroupQuestion> findAllByExamGroup(ExamGroup examGroup, Pageable pageable);
+    Page<ExamGroupQuestion> findAllByExamGroup(ExamGroup examGroup, Pageable pageable);
+
+    Optional<ExamGroupQuestion> findExamGroupQuestionByExamGroupAndId(ExamGroup examGroup, Long id);
+
+    @Query("select sum(egq.points) from _exam_group_questions egq where egq.examGroup = ?1")
+    Integer sumPointsByExamGroup(ExamGroup examGroup);
 }

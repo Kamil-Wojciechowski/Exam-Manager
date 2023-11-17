@@ -24,6 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URLEncoder;
@@ -49,12 +50,14 @@ public class AuthenticationService {
     @Value("spring.secret")
     private String secretKey;
 
+    @Autowired
+    private UserRepository userRepository;
 
-    private final UserRepository userRepository;
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    private final AuthenticationManager authenticationManager;
-
-    private final TokenRepository tokenRepository;
+    @Autowired
+    private TokenRepository tokenRepository;
     private StrongTextEncryptor textEncryptor;
 
     @Autowired
@@ -87,6 +90,8 @@ public class AuthenticationService {
     }
 
     private Token buildRefreshToken(User user) {
+        tokenRepository.deleteByTokenTypeAndUser(TokenType.REFRESH_TOKEN, user);
+
         Token refreshToken = Token.builder()
                 .tokenType(TokenType.REFRESH_TOKEN)
                 .hashedToken(Base64.getEncoder().encodeToString(UUID.randomUUID().toString().getBytes()))
@@ -97,6 +102,7 @@ public class AuthenticationService {
         return tokenRepository.save(refreshToken);
     }
 
+    @Transactional
     public AuthenticationResponse authenticate(AuthenticationRequest request, String addressIp) {
 
         log.info(ObjectToJson.toJson("Authentication request appeard for user: " + request.getEmail()));

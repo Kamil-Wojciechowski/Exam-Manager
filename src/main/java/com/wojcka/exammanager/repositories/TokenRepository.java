@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface TokenRepository extends JpaRepository<Token, Integer> {
-    public Optional<Token> findByHashedToken(String hashedToken);
+    Optional<Token> findByHashedToken(String hashedToken);
 
-    public boolean deleteByTokenTypeAndUser(TokenType tokenType, User user);
+    void deleteByTokenTypeAndUser(TokenType tokenType, User user);
 }

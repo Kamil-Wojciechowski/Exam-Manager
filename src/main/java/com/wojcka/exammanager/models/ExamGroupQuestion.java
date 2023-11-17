@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 
 @Data
 @ToString
@@ -27,9 +29,15 @@ public class ExamGroupQuestion {
     )
     private Question question;
 
-    private String answer;
+    @OneToMany(
+            mappedBy = "examGroupQuestion"
+    )
+    private List<ExamGroupQuestionAnswer> answer;
 
     private Integer points;
+
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
+    private boolean changedManually;
 
     @Enumerated(EnumType.STRING)
     private CorrectType correct;

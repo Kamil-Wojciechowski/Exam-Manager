@@ -32,7 +32,6 @@ public class ExamGroup {
 
     private String submissionId;
 
-    @JsonIgnore
     @OneToMany(
             targetEntity = ExamGroupQuestion.class,
             mappedBy = "examGroup",
@@ -42,6 +41,4 @@ public class ExamGroup {
     private Boolean sent;
 
     private Integer points;
-
-    private Integer correctQuestions;
 }
