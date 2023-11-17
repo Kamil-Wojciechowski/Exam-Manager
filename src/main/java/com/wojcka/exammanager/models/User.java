@@ -39,6 +39,8 @@ public class User implements UserDetails
     @Column(length = 30)
     private String lastname;
 
+    private String ipAddress;
+
     @JsonIgnore
     private String password;
 

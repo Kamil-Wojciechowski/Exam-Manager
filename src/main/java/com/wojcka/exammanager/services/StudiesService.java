@@ -2,9 +2,7 @@ package com.wojcka.exammanager.services;
 
 import com.wojcka.exammanager.components.Translator;
 import com.wojcka.exammanager.models.*;
-import com.wojcka.exammanager.repositories.QuestionMetadataRepository;
-import com.wojcka.exammanager.repositories.StudiesRepository;
-import com.wojcka.exammanager.repositories.StudiesUserRepository;
+import com.wojcka.exammanager.repositories.*;
 import com.wojcka.exammanager.schemas.responses.GenericResponse;
 import com.wojcka.exammanager.schemas.responses.GenericResponsePageable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -24,9 +24,6 @@ import java.util.List;
 public class StudiesService {
     @Autowired
     private StudiesRepository studiesRepository;
-
-    @Autowired
-    private QuestionMetadataRepository questionMetadataRepository;
 
     @Autowired
     private StudiesUserRepository studiesUserRepository;
@@ -46,11 +43,7 @@ public class StudiesService {
                 .build();
     }
 
-//    private QuestionMetadata getQuestionMetadata(Integer id) {
-//        return questionMetadataRepository.findById(id).orElseThrow(() -> {
-//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
-//        });
-//    }
+
 
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
@@ -85,33 +78,6 @@ public class StudiesService {
         return (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
 
-//    private QuestionMetadataOwnership getOwnershipDetails(List<QuestionMetadataOwnership> questionMetadataOwnership) {
-//        try {
-//            return questionMetadataOwnership
-//                    .stream().filter(item -> item.getUser().getId().equals(getUserFromAuth().getId())).toList().get(0);
-//        } catch (Exception ex) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-//        }
-//    }
-
-//    private void validateOwnership(List<QuestionMetadataOwnership> questionMetadataOwnership, boolean post) {
-//        QuestionMetadataOwnership ownership = getOwnershipDetails(questionMetadataOwnership);
-//
-//        if(ownership == null || !ownership.isEnoughToAccess()) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-//        }
-//
-//        if(!post) {
-//            StudiesUser studiesUser = studiesUserRepository.findByUser(getUserFromAuth()).orElseThrow(() -> {
-//                throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-//            });
-//
-//            if (!studiesUser.getOwner()) {
-//                throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-//            }
-//        }
-//    }
-
     private void validateOwnership(Studies studies) {
         studiesUserRepository.findByUserAndStudiesAndOwner(getUserFromAuth(), studies, true).orElseThrow(() -> {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
@@ -123,10 +89,6 @@ public class StudiesService {
         Studies studies = getStudiesById(id);
 
         validateOwnership(studies);
-
-        if(request.getClassroomId() == null && studies.getClassroomId() != null ) {
-            request.setClassroomId(studies.getClassroomId());
-        }
 
         request.setId(id);
 

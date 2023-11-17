@@ -23,8 +23,8 @@ public class AuthenticationController {
     private final AuthenticationService service;
 
     @PostMapping("login")
-    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request) {
-        return ResponseEntity.ok(service.authenticate(request));
+    public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request, @RequestHeader("Address-IP") String addressIp) {
+        return ResponseEntity.ok(service.authenticate(request, addressIp));
     }
 
     @PostMapping("refresh/{token}")

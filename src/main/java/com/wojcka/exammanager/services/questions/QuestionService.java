@@ -173,35 +173,19 @@ public class QuestionService {
                 for (CSVRecord csvRecord : csvParser) {
                     if (csvRecord.size() >= csvParser.getHeaderMap().size()) {
 
-                        Boolean isPointsSet = csvRecord.get("points").isEmpty();
-
                         Question question = Question.builder()
                                 .question(csvRecord.get(0))
                                 .questionMetadata(questionMetadata)
                                 .archived(false)
                                 .build();
 
-                        if(isPointsSet) {
-                            isPointsSet=false;
-                        } else {
-                            question.setPoints(Integer.parseInt(csvRecord.get("points")));
-                        }
-
 
                         List<String> correctAnswer = Arrays.asList(csvRecord.get("correct").split(","));
                         if (correctAnswer.size() >= 2) {
                             question.setQuestionType(QuestionType.MULTIPLE_ANSWERS);
 
-                            if(!isPointsSet) {
-                                question.setPoints(correctAnswer.size());
-                            }
-
                         } else {
                             question.setQuestionType(QuestionType.SINGLE_ANSWER);
-
-                            if(!isPointsSet) {
-                                question.setPoints(1);
-                            }
                         }
 
                         question = questionRepository.save(question);

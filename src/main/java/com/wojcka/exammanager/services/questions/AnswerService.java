@@ -73,31 +73,34 @@ public class AnswerService {
 
 
     private void validateNumberOfQuestionsAndType(Question question, QuestionAnswer request, QuestionAnswer answer) {
-        if(request.getCorrect() || !answer.equals(null)) {
+        if(request.getCorrect() || answer != null) {
             List<QuestionAnswer> answers = question.getAnswers();
 
-            answers = answers.stream().filter(item -> item.getCorrect()).collect(Collectors.toList());
+                answers = answers.stream().filter(item -> item.getCorrect()).toList();
 
-            Integer size = answers.size();
 
-            if(!answer.getCorrect() && request.getCorrect()) {
-                size++;
-            } else if(answer.getCorrect() && !request.getCorrect()) {
-                size--;
-            }
+                Integer size = answers.size();
 
-            if (question.isTypeForSingleAnswer() && (answers.size() == 1)) {
-                if(answer.equals(null)) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
+                if(answer != null) {
+                    if (!answer.getCorrect() && request.getCorrect()) {
+                        size++;
+                    } else if (answer.getCorrect() && !request.getCorrect()) {
+                        size--;
+                    }
                 }
 
-                if(!answer.getCorrect()) {
-                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
-                }
-            }
+                if (question.isTypeForSingleAnswer() && (answers.size() == 1) && request.getCorrect()) {
+                    if (answer == null) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
+                    }
 
-            saveQuestionValidation(question, size);
-        }
+                    if (!answer.getCorrect()) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
+                    }
+                }
+
+                saveQuestionValidation(question, size);
+            }
     }
 
 
