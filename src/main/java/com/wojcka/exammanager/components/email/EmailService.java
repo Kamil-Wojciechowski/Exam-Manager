@@ -1,5 +1,7 @@
 package com.wojcka.exammanager.components.email;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface EmailService {
-    Boolean sendEmail(String to, String subject, String body);
+    CompletableFuture<Boolean> sendEmail(String to, String subject, String body);
 }

@@ -15,6 +15,7 @@ import com.wojcka.exammanager.repositories.UserRepository;
 import com.wojcka.exammanager.services.internal.JwtEncoder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.jasypt.util.text.StrongTextEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -122,11 +123,11 @@ public class AuthenticationService {
 
     private Token validateRefresh(String token) {
         Token refreshToken = tokenRepository.findByHashedToken(token).orElseThrow(() -> {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("token_not_found"));
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Translator.toLocale("token_unauthorized"));
         });
 
         if(!refreshToken.isTokenRefresh() & refreshToken.isTokenExpired()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("token_not_found"));
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, Translator.toLocale("token_unauthorized"));
         }
 
         return refreshToken;
@@ -143,9 +144,10 @@ public class AuthenticationService {
         textEncryptor.setPassword(secretKey);
     }
 
+    @Transactional
     public GenericResponse recovery(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("email_not_found"));
+            throw new ResponseStatusException(HttpStatus.OK, Translator.toLocale("email_has_been_send"));
         });
 
         initializeEncrypt();
@@ -168,11 +170,17 @@ public class AuthenticationService {
     }
 
     private Token validateRecovery(String token) {
-        Token recoveryToken = tokenRepository.findByHashedToken(textEncryptor.decrypt(token)).orElseThrow(() -> {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("token_not_found"));
-        });
+        Token recoveryToken;
 
-        if(!recoveryToken.isTokenRecover()) {
+        try {
+            recoveryToken = tokenRepository.findByHashedToken(textEncryptor.decrypt(token)).orElseThrow(() -> {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("token_not_found"));
+            });
+        } catch (EncryptionOperationNotPossibleException ex) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("token_not_found"));
+        }
+
+            if(!recoveryToken.isTokenRecover()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("token_wrong_type"));
         }
 
@@ -206,7 +214,8 @@ public class AuthenticationService {
 
         userRepository.save(user);
 
-        tokenRepository.delete(recoveryToken);
+        tokenRepository.deleteByTokenTypeAndUser(TokenType.RECOVERY, user);
+        tokenRepository.deleteByTokenTypeAndUser(TokenType.REFRESH_TOKEN, user);
 
         return GenericResponse.ok("Password has been updated!");
     }
@@ -240,6 +249,7 @@ public class AuthenticationService {
         return activationToken;
     }
 
+    @Transactional
     public void validateActivationToken(String token) {
         initializeEncrypt();
 
@@ -252,6 +262,7 @@ public class AuthenticationService {
         userRepository.save(user);
     }
 
+    @Transactional
     public GenericResponse activate(String token, PasswordRequest passwordRequest) {
         Token tokenObject = validateActivate(token);
 

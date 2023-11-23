@@ -1,6 +1,8 @@
 package com.wojcka.exammanager.schemas.requests;
 
+import com.wojcka.exammanager.components.ValidPassword;
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,11 +13,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PasswordRequest {
+
+    @ValidPassword
     private String password;
 
+    @NotNull
     private String confirmedPassword;
 
-    @AssertTrue
+    @AssertTrue(message = "password_equal")
     public boolean isPasswordEqual() {
         return password.equals(confirmedPassword);
     }

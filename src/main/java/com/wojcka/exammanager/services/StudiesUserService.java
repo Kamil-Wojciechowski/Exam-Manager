@@ -196,6 +196,7 @@ public class StudiesUserService {
         textEncryptor.setPassword(secretKey);
     }
 
+    @Transactional
     public GenericResponse importUsersCsv(Integer studiesId, MultipartFile file) {
         Studies studies = getStudies(studiesId);
 
