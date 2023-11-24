@@ -43,6 +43,8 @@ public class UserService {
                 .build();
     }
 
+
+    @PreAuthorize("hasRole('TEACHER') or hasRole('STUDENT')" )
     public GenericResponse getCurrentUser() {
         User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
