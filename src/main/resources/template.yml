@@ -30,6 +30,9 @@ spring:
     port:
     username:
     password:
+    frontendUrl:
+      recovery: "http://localhost:8081/login/recovery/{token}"
+      activation: "http://localhost:8081/login/activation/{token}"
   security:
     oauth2:
       client:

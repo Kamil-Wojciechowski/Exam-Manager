@@ -1,6 +1,8 @@
 package com.wojcka.exammanager.services;
 
 import com.wojcka.exammanager.components.Translator;
+import com.wojcka.exammanager.components.email.EmailBodyBuilder;
+import com.wojcka.exammanager.components.email.EmailBodyType;
 import com.wojcka.exammanager.components.email.EmailService;
 import com.wojcka.exammanager.models.*;
 import com.wojcka.exammanager.repositories.*;
@@ -29,6 +31,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -76,6 +79,9 @@ public class StudiesUserService {
 
     @Value("spring.secret")
     private String secretKey;
+
+    @Value("${spring.mail.frontendUrl.activation}")
+    private String activationUrl;
 
     private StrongTextEncryptor textEncryptor;
 
@@ -264,7 +270,12 @@ public class StudiesUserService {
                     .expirationDate(LocalDateTime.now().plusDays(activationExpiration))
                     .build());
 
-            emailService.sendEmail(user.getEmail(), "Activation", URLEncoder.encode(textEncryptor.encrypt(secretUUID), Charset.defaultCharset()));
+            HashMap<String, String> items = new HashMap<>();
+            items.put("{url}", activationUrl.replace("{token}", URLEncoder.encode(textEncryptor.encrypt(secretUUID), Charset.defaultCharset())));
+
+            String emailBody = EmailBodyBuilder.buildEmail(EmailBodyType.ACTIVATION, items);
+
+            emailService.sendEmail(user.getEmail(), "Activation", emailBody);
         } else if (user.getId() != null && user.getGoogleUserId() == null && googleClassroomId != null) {
             user.setGoogleUserId(googleClassroomId);
 

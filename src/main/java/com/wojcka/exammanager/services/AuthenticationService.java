@@ -1,6 +1,8 @@
 package com.wojcka.exammanager.services;
 
 import com.wojcka.exammanager.components.ObjectToJson;
+import com.wojcka.exammanager.components.email.EmailBodyBuilder;
+import com.wojcka.exammanager.components.email.EmailBodyType;
 import com.wojcka.exammanager.components.email.EmailService;
 import com.wojcka.exammanager.components.Translator;
 import com.wojcka.exammanager.schemas.requests.AuthenticationRequest;
@@ -32,6 +34,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Service
@@ -50,6 +53,12 @@ public class AuthenticationService {
 
     @Value("spring.secret")
     private String secretKey;
+
+    @Value("${spring.mail.frontendUrl.recovery}")
+    private String recoveryUrl;
+
+    @Value("${spring.mail.frontendUrl.activation}")
+    private String activationUrl;
 
     @Autowired
     private UserRepository userRepository;
@@ -150,6 +159,11 @@ public class AuthenticationService {
             throw new ResponseStatusException(HttpStatus.OK, Translator.toLocale("email_has_been_send"));
         });
 
+        if(!user.isEnabled()) {
+            log.error("User is not activated!");
+            throw new ResponseStatusException(HttpStatus.OK, Translator.toLocale("email_has_been_send"));
+        }
+
         initializeEncrypt();
 
         String secretUUID = UUID.randomUUID().toString();
@@ -164,7 +178,12 @@ public class AuthenticationService {
                 .expirationDate(LocalDateTime.now().plusDays(recoveryExpiration))
                 .build());
 
-        emailService.sendEmail(user.getEmail(), "Recovery",  URLEncoder.encode(textEncryptor.encrypt(secretUUID), Charset.defaultCharset()));
+        HashMap<String, String> items = new HashMap<>();
+        items.put("{url}", recoveryUrl.replace("{token}", URLEncoder.encode(textEncryptor.encrypt(secretUUID), Charset.defaultCharset())));
+
+        String emailBody = EmailBodyBuilder.buildEmail(EmailBodyType.RECOVERY, items);
+
+        emailService.sendEmail(user.getEmail(), "Recovery",  emailBody);
 
         return GenericResponse.created(Translator.toLocale("email_has_been_send"));
     }
@@ -241,7 +260,12 @@ public class AuthenticationService {
                     .expirationDate(LocalDateTime.now().plusDays(activationExpiration))
                     .build());
 
-            emailService.sendEmail(activationToken.getUser().getEmail(), "Activation",  URLEncoder.encode(textEncryptor.encrypt(secretUUID), Charset.defaultCharset()));
+            HashMap<String, String> items = new HashMap<>();
+            items.put("{url}", activationUrl.replace("{token}", URLEncoder.encode(textEncryptor.encrypt(secretUUID), Charset.defaultCharset())));
+
+            String emailBody = EmailBodyBuilder.buildEmail(EmailBodyType.ACTIVATION, items);
+
+            emailService.sendEmail(activationToken.getUser().getEmail(), "Activation",  emailBody);
 
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("token_expired_activation"));
         }
