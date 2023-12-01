@@ -28,8 +28,22 @@ public class StudiesService {
     @Autowired
     private StudiesUserRepository studiesUserRepository;
 
+    private List<StudiesUser> filterOwner(List<StudiesUser> studiesUserList, User user) {
+        return studiesUserList.stream().filter((studiesUser ->
+                studiesUser.getUser().getId().equals(user.getId()) & studiesUser.getOwner()
+        )).toList();
+    }
+
     public GenericResponsePageable get(Integer page, Integer size) {
-        Page<Studies> pageable = studiesRepository.getByUser(getUserFromAuth().getId() ,PageRequest.of(page, size));
+        User user = getUserFromAuth();
+
+        Page<Studies> pageable = studiesRepository.getByUser(user.getId() ,PageRequest.of(page, size));
+
+        pageable.getContent().forEach((item) -> {
+            List<StudiesUser> studiesUserList = filterOwner(item.getStudiesUserList(), user);
+
+            item.setOwner(!studiesUserList.isEmpty());
+        });
 
         return GenericResponsePageable.builder()
                 .code(200)
@@ -62,9 +76,15 @@ public class StudiesService {
     }
 
     private Studies getStudiesById(Integer id) {
-        return studiesRepository.findById(id).orElseThrow(() -> {
+        Studies studies =  studiesRepository.findById(id).orElseThrow(() -> {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
+
+        List<StudiesUser> studiesUserList = filterOwner(studies.getStudiesUserList(), getUserFromAuth());
+
+        studies.setOwner(!studiesUserList.isEmpty());
+
+        return studies;
     }
 
     @PreAuthorize("hasRole('TEACHER')")
@@ -97,10 +117,17 @@ public class StudiesService {
 
     @PreAuthorize("hasRole('TEACHER')")
     public void delete(Integer id) {
+
         Studies studies = getStudiesById(id);
 
         validateOwnership(studies);
 
-        studiesRepository.delete(studies);
+        try {
+            studiesRepository.delete(studies);
+        } catch (RuntimeException exception) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("can_not_delete"));
+
+        }
+
     }
 }

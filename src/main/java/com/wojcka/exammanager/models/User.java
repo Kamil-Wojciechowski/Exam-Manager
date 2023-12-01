@@ -59,9 +59,28 @@ public class User implements UserDetails
     @Column(unique = true)
     private String email;
 
+
     private boolean expired;
     private boolean locked;
     private boolean enabled;
+
+
+    @JsonProperty
+    public Boolean isGoogleConnected() {
+        return (googleAccessToken != null) && !googleAccessToken.isEmpty();
+    }
+    @JsonProperty
+    public List<String> currentRoles() {
+        List<String> currentRoles = new ArrayList<>();
+
+        this.userRoleGroups.forEach((item) -> {
+           currentRoles.add(
+                   item.getGroup().getKey()
+           );
+        });
+
+        return currentRoles;
+    }
 
     @Override
     public String toString() {

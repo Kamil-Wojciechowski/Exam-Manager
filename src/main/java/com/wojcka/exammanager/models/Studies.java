@@ -30,12 +30,18 @@ public class Studies {
     @JsonIgnore
     @OneToMany(
             targetEntity = StudiesUser.class,
-            mappedBy = "studies"
+            mappedBy = "studies",
+            cascade = CascadeType.ALL
     )
     @JsonIdentityReference(alwaysAsId = true)
     private List<StudiesUser> studiesUserList;
 
     private String classroomId;
+
+    private String classroomName;
+
+    @Transient
+    private Boolean owner;
 
     @Column(updatable = false)
     @CreationTimestamp
