@@ -24,12 +24,22 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    public GenericResponsePageable getUsers(String role, Integer page, Integer size) {
+    public GenericResponsePageable getUsers(String role, String firstname, String lastname, String email, Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page,size);
 
         role = "ROLE_" + role.toUpperCase();
 
-        Page result = userRepository.getUsersByRole(role, pageable);
+        if(firstname != null) {
+            firstname = '%' + firstname.toLowerCase() + '%';
+        }
+        if(lastname != null) {
+            lastname = '%' + lastname.toLowerCase() + '%';
+        }
+        if(email != null) {
+            email = '%' + email.toLowerCase() + '%';
+        }
+
+        Page result = userRepository.getByRoleAndParams(role, firstname, lastname, email, pageable);
 
         return GenericResponsePageable.builder()
                 .code(200)

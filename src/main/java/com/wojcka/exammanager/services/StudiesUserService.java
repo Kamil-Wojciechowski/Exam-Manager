@@ -109,7 +109,7 @@ public class StudiesUserService {
 
         validateUser(studies, false);
 
-        Page<StudiesUser> result = studiesUserRepository.findByStudies(studies, PageRequest.of(page,size));
+        Page<StudiesUser> result = studiesUserRepository.findByStudiesOrderByIdAsc(studies, PageRequest.of(page,size));
 
         return GenericResponsePageable.builder()
                 .code(200)
@@ -309,15 +309,16 @@ public class StudiesUserService {
 
         List<User> listOfUsers = googleService.getUsersByClassroom(studies.getClassroomId());
 
-
-
         List<StudiesUser> listOfProccessed = new ArrayList<>();
 
         setTextEncryptor();
 
-        listOfUsers.forEach(item -> {
-            listOfProccessed.add(processSingleEmail(item, studies));
-        });
+        if(!listOfUsers.isEmpty()) {
+            listOfUsers.forEach(item -> {
+                listOfProccessed.add(processSingleEmail(item, studies));
+            });
+        }
+
 
         return GenericResponse.created(listOfProccessed);
     }

@@ -20,8 +20,12 @@ public class UserController {
     private UserService userService;
 
     @GetMapping
-    private ResponseEntity<GenericResponsePageable> user(@RequestParam(defaultValue = "TEACHER", required = false) String role, @RequestParam(defaultValue = "0", required = false) @Min(0) Integer page, @RequestParam(defaultValue = "50", required = false) @Min(1) @Max(100) Integer size) {
-        return ResponseEntity.ok(userService.getUsers(role, page, size));
+    private ResponseEntity<GenericResponsePageable> user(@RequestParam(defaultValue = "TEACHER", required = false) String role,
+                                                         @RequestParam(required = false) String firstname,
+                                                         @RequestParam(required = false) String lastname,
+                                                         @RequestParam(required = false) String email,
+                                                         @RequestParam(defaultValue = "0", required = false) @Min(0) Integer page, @RequestParam(defaultValue = "50", required = false) @Min(1) @Max(100) Integer size) {
+        return ResponseEntity.ok(userService.getUsers(role, firstname, lastname, email, page, size));
     }
 
     @GetMapping("/me")

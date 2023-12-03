@@ -223,23 +223,25 @@ public class GoogleService {
 
                 ArrayList<User> listOfUsersEmails = new ArrayList<>();
 
-                items.forEach(item -> {
-                   LinkedHashMap profile = (LinkedHashMap) item.get("profile");
-                   LinkedHashMap profileDetails = (LinkedHashMap) profile.get("name");
+                if(items != null) {
+                    items.forEach(item -> {
+                        LinkedHashMap profile = (LinkedHashMap) item.get("profile");
+                        LinkedHashMap profileDetails = (LinkedHashMap) profile.get("name");
 
-                    User googleUser = User.builder()
-                            .email(profile.get("emailAddress").toString().toLowerCase())
-                            .firstname((String) profileDetails.get("givenName"))
-                            .lastname((String) profileDetails.get("familyName"))
-                            .googleUserId((String) item.get("userId"))
-                            .enabled(false)
-                            .locked(false)
-                            .expired(false)
-                            .build();
+                        User googleUser = User.builder()
+                                .email(profile.get("emailAddress").toString().toLowerCase())
+                                .firstname((String) profileDetails.get("givenName"))
+                                .lastname((String) profileDetails.get("familyName"))
+                                .googleUserId((String) item.get("userId"))
+                                .enabled(false)
+                                .locked(false)
+                                .expired(false)
+                                .build();
 
 
-                   listOfUsersEmails.add(googleUser);
-                });
+                        listOfUsersEmails.add(googleUser);
+                    });
+                }
 
                 return listOfUsersEmails;
             } catch (JsonProcessingException e) {

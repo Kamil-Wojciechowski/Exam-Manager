@@ -21,4 +21,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query(value = "select u.* from _users u join _user_groups ug on u.id = ug.user_id join _groups g on ug.group_id = g.id where g.key = :role", nativeQuery = true)
 
     Page<User> getUsersByRole(@Param("role") String role, Pageable pageable);
+
+    @Query(value = """
+select u.* from _users u join _user_groups ug on u.id = ug.user_id join _groups g on ug.group_id = g.id where g.key = :role and (
+((lower(u.firstname) like :firstname or :firstname is null) and (lower(u.lastname) like :lastname or :lastname is null) and (lower(u.email) like :email or :email is null)))
+""", nativeQuery = true)
+    Page<User> getByRoleAndParams(@Param("role") String role, @Param("firstname") String firstname, @Param("lastname") String lastname, @Param("email") String email, Pageable pageable);
 }

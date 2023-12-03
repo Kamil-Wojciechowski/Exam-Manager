@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface StudiesRepository extends JpaRepository<Studies, Integer> {
 
-    @Query(value = "select s.* from _studies s inner join _studies_user su on s.id = su.studies_id where su.user_id = :userId", nativeQuery = true)
+    @Query(value = "select s.* from _studies s inner join _studies_user su on s.id = su.studies_id where su.user_id = :userId order by s.id DESC", nativeQuery = true)
     Page<Studies> getByUser(UUID userId, Pageable pageable);
 
 }
