@@ -73,6 +73,7 @@ public class QuestionMetadataService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse create(QuestionMetadata request) {
         request = questionMetadataRepository.save(request);
 
@@ -96,6 +97,7 @@ public class QuestionMetadataService {
     }
 
     @Transactional
+    @PreAuthorize("hasRole('TEACHER')")
     public Void update(QuestionMetadata request) {
         User user = getUserFromAuth();
 
@@ -115,12 +117,12 @@ public class QuestionMetadataService {
             }
         }
 
-
         log.info(ObjectToJson.toJson(request));
 
         return null;
     }
 
+    @PreAuthorize("hasRole('TEACHER')")
     public Void deleteById(Long id) {
         User user = getUserFromAuth();
 
@@ -133,7 +135,11 @@ public class QuestionMetadataService {
         });
 
         if(ownership.getOwnership().equals(Ownership.OWNER)) {
-            questionMetadataRepository.delete(questionMetadata);
+            try {
+                questionMetadataRepository.delete(questionMetadata);
+            } catch (RuntimeException exception) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("can_not_delete"));
+            }
         } else {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         }

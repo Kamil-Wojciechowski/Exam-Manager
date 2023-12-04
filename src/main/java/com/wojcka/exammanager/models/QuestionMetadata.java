@@ -37,22 +37,18 @@ public class QuestionMetadata {
     @OneToMany(
             targetEntity = QuestionMetadataOwnership.class,
             mappedBy = "questionMetadata",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
+            cascade = CascadeType.ALL
     )
     private List<QuestionMetadataOwnership> questionMetadataOwnership;
 
     @JsonIgnore
     @OneToMany( targetEntity = Question.class,
             mappedBy = "questionMetadata",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true)
+            cascade = CascadeType.ALL)
     public List<Question> question;
 
     @JsonIgnore
     public boolean isIdEmpty() {
         return id.equals(null);
     }
-
-
 }

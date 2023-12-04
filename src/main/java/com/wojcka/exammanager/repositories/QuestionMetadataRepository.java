@@ -12,6 +12,6 @@ import java.util.Optional;
 @Repository
 public interface QuestionMetadataRepository extends JpaRepository<QuestionMetadata, Integer> {
 
-    @Query("SELECT qm from _questions_metadata qm")
+    @Query("SELECT qm from _questions_metadata qm order by qm.id DESC")
     Page<QuestionMetadata> findAll(Pageable pageable);
 }

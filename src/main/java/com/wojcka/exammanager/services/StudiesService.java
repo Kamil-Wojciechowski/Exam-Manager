@@ -87,7 +87,6 @@ public class StudiesService {
         return studies;
     }
 
-    @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse getById(Integer id) {
         Studies studies = getStudiesById(id);
 
@@ -126,8 +125,6 @@ public class StudiesService {
             studiesRepository.delete(studies);
         } catch (RuntimeException exception) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("can_not_delete"));
-
         }
-
     }
 }
