@@ -48,6 +48,27 @@ public class GoogleService {
         headers.setBearerAuth(accessToken);
     }
 
+    public String generateUrl() {
+        String googleClientRegistrationId = "google";
+
+        ClientRegistration clientRegistration = clientRegistrationRepository
+                .findByRegistrationId(googleClientRegistrationId);
+
+        String authorizationUri = clientRegistration.getProviderDetails()
+                .getAuthorizationUri();
+
+        String redirectUri = clientRegistration.getRedirectUri();
+
+        String authorizationUrl = String.format("%s&response_type=code&client_id=%s&scope=%s&state=%s&redirect_uri=%s",
+                authorizationUri,
+                clientRegistration.getClientId(),
+                String.join(" ", clientRegistration.getScopes()),
+                "k9qeIBI6hc5wMphgcrJgnXSkVKxSWuCmBjx6BCWHwso%3D",
+                redirectUri);
+
+        return authorizationUrl;
+    }
+
     private void validateUserGoogle() {
         User user = getUserFromAuth();
 

@@ -14,6 +14,17 @@ public class OAuthController {
     @Autowired
     private GoogleService googleService;
 
+    @GetMapping("/google")
+    public ResponseEntity<Void> generateUrl() {
+        String authUrl = googleService.generateUrl();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, "Google-Url");
+        headers.add("Google-Url", authUrl);
+
+        return ResponseEntity.noContent().headers(headers).build();
+    }
+
 
     @PostMapping("/callback")
     public ResponseEntity<Void> oauthCallback(@RequestParam("code") String authorizationCode) throws JsonProcessingException {

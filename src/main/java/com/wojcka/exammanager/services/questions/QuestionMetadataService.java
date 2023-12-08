@@ -38,7 +38,9 @@ public class QuestionMetadataService {
     public GenericResponsePageable get(int page, int size) {
         Pageable pageable = PageRequest.of(page,size);
 
-        Page questionMetadata = questionMetadataRepository.findAll(pageable);
+        User user = getUserFromAuth();
+
+        Page questionMetadata = questionMetadataRepository.findAllByUser(user.getId(), pageable);
 
         return GenericResponsePageable.builder()
                 .code(200)
