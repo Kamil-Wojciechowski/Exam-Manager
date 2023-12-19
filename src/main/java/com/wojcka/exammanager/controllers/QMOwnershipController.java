@@ -23,29 +23,29 @@ public class QMOwnershipController {
     @Autowired
     private QMOwnerService qmOwnerService;
 
-    @GetMapping("/{metadataId}/ownership")
+    @GetMapping("/{metadataId}/ownerships")
     public ResponseEntity<GenericResponsePageable> getQMOwnership(@PathVariable("metadataId") Integer metadataId, @RequestParam(defaultValue = "0", required = false) @Min(0) Integer page, @RequestParam(defaultValue = "50", required = false) @Min(1) @Max(100) Integer size ) {
         return ResponseEntity.ok(qmOwnerService.get(metadataId, page, size));
     }
 
-    @PostMapping("/{metadataId}/ownership")
+    @PostMapping("/{metadataId}/ownerships")
     public ResponseEntity<GenericResponse> createQMOwnership(@PathVariable("metadataId") Integer metadataId, @Valid @RequestBody QuestionMetadataOwnership request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(qmOwnerService.post(metadataId, request));
     }
 
-    @GetMapping("/{metadataId}/ownership/{id}")
+    @GetMapping("/{metadataId}/ownerships/{id}")
     public ResponseEntity<GenericResponse> getByIdQMOwnership(@PathVariable("metadataId") Integer metadataId, @PathVariable("id") Integer id) {
         return ResponseEntity.ok(qmOwnerService.getById(metadataId, id));
     }
 
-    @PatchMapping("/{metadataId}/ownership/{id}")
+    @PatchMapping("/{metadataId}/ownerships/{id}")
     public ResponseEntity<Void> updateQMOwnership(@PathVariable("metadataId") Integer metadataId, @PathVariable("id") Integer id, @Valid @RequestBody QuestionMetadataOwnership request) {
         qmOwnerService.patch(metadataId, id, request);
 
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{metadataId}/ownership/{id}")
+    @DeleteMapping("/{metadataId}/ownerships/{id}")
     public ResponseEntity<Void> deleteQMOwnership(@PathVariable("metadataId") Integer metadataId, @PathVariable("id") Integer id) {
         qmOwnerService.delete(metadataId, id);
 

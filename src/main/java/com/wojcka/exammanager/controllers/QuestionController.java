@@ -26,7 +26,7 @@ public class QuestionController {
     @GetMapping
     public ResponseEntity<GenericResponsePageable> getQuestions(@PathVariable("metadataId") Integer metadataId, @RequestParam(defaultValue = "0", required = false) @Min(0) Integer page,
                                                                 @RequestParam(defaultValue = "50", required = false) @Min(1) @Max(100) Integer size, @RequestParam(defaultValue = "false", required = false) Boolean archived) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(questionService.get(metadataId, page, size, archived));
+        return ResponseEntity.status(HttpStatus.OK).body(questionService.get(metadataId, page, size, archived));
     }
 
     @PostMapping
