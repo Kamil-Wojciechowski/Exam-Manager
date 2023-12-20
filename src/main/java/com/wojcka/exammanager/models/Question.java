@@ -45,7 +45,7 @@ public class Question {
     @ManyToOne
     public QuestionMetadata questionMetadata;
 
-    @OneToMany(cascade = CascadeType.ALL, targetEntity = QuestionAnswer.class, mappedBy = "question", fetch = FetchType.LAZY, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, targetEntity = QuestionAnswer.class, mappedBy = "question", fetch = FetchType.LAZY)
     private List<QuestionAnswer> answers;
 
     @Column(updatable = false)

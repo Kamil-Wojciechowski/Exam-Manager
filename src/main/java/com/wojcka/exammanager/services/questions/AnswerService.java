@@ -89,6 +89,10 @@ public class AnswerService {
                     }
                 }
 
+                if(request != null && size.equals(0) && request.getCorrect()) {
+                    size++;
+                }
+
                 if (question.isTypeForSingleAnswer() && (answers.size() == 1) && request.getCorrect()) {
                     if (answer == null) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));

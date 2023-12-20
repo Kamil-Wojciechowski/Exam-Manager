@@ -131,6 +131,12 @@ public class QuestionService {
 
         request.setQuestionMetadata(QuestionMetadata.builder().id(metadataId).build());
 
+        if(request.getAnswers().stream().filter(item -> item.getCorrect()).toList().size() > 1 && request.getQuestionType().equals(QuestionType.SINGLE_ANSWER) ) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
+        }
+
+        request.setAnswers(new ArrayList<>());
+
         try {
             getQuestion(metadataId, id);
 

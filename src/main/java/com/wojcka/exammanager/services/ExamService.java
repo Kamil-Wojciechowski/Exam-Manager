@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,7 +58,7 @@ public class ExamService {
     @Autowired
     private GoogleService googleService;
 
-    public GenericResponsePageable getStudiesByAuthenticatedUser(Integer studiesId, int size, int page) {
+    public GenericResponsePageable getStudiesByAuthenticatedUser(Integer studiesId, String order,  String orderBy, int size, int page) {
 
         Studies studies = fetchStudies(studiesId);
 
@@ -65,7 +66,15 @@ public class ExamService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
         });
 
-        Page<Exam> result = examRepository.findAllByStudies(studies, PageRequest.of(page,size));
+        Sort sort;
+
+        if(order.equals("asc")) {
+            sort = Sort.by(Sort.Order.asc(orderBy));
+        } else {
+            sort = Sort.by(Sort.Order.desc(orderBy));
+        }
+
+        Page<Exam> result = examRepository.findAllByStudies(studies, PageRequest.of(page, size, sort));
 
         return GenericResponsePageable.builder()
                 .code(200)
@@ -190,7 +199,7 @@ public class ExamService {
 
         exam = examRepository.save(exam);
 
-        if(studies.getClassroomId() != null) {
+        if(studies.getClassroomId() != null && !studies.getClassroomId().isEmpty()) {
             CourseWork courseWork = CourseWork.builder()
                     .title(exam.getName())
                     .description(Translator.toLocale("exam_description"))
