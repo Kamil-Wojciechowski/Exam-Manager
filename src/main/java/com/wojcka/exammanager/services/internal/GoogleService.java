@@ -157,12 +157,18 @@ public class GoogleService {
     private void requestOAuth(String authorizationCode, Boolean refresh) {
         HttpEntity<MultiValueMap<String, String>> requestEntity = buildRequest(authorizationCode, refresh);
 
+        ResponseEntity<String> response;
+
         LocalDateTime expirationTime = LocalDateTime.now();
-        ResponseEntity<String> response = restTemplate.exchange(tokenEndpointUrl, HttpMethod.POST, requestEntity, String.class);
+        try {
+            response = restTemplate.exchange(tokenEndpointUrl, HttpMethod.POST, requestEntity, String.class);
+        } catch (Exception ex) {
+            deleteConnection();
+
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, Translator.toLocale("internal_server_error"));
+        }
 
         if (response.getStatusCode() == HttpStatus.OK) {
-            // You can extract the access token from the response body
-
             Map<String, String> jsonMap = null;
             try {
                 jsonMap = objectMapper.readValue(response.getBody(), Map.class);

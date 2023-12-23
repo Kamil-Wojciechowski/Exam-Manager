@@ -14,7 +14,7 @@ import java.util.Optional;
 public interface ExamRepository  extends JpaRepository<Exam, Integer> {
 
     @Query
-    Page<Exam> findAllByStudies(Studies studise, Pageable pageable);
+    Page<Exam> findAllByStudiesAndArchived(Studies studies, Boolean archived, Pageable pageable);
 
     @Query
     List<Exam> findAllByStudies(Studies studies);

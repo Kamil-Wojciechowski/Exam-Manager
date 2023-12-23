@@ -22,8 +22,13 @@ public class ExamController {
     private ExamService examService;
 
     @GetMapping
-    public ResponseEntity<GenericResponsePageable> getExams(@PathVariable("studiesId") Integer studiesId, @RequestParam(defaultValue = "asc", required = false) String order, @RequestParam(defaultValue = "createdAt", required = false) String orderBy, @RequestParam(defaultValue = "0", required = false) @Min(0) Integer page, @RequestParam(defaultValue = "50", required = false) @Min(1) @Max(100) Integer size) {
-        return ResponseEntity.ok(examService.getStudiesByAuthenticatedUser(studiesId, order, orderBy, size, page));
+    public ResponseEntity<GenericResponsePageable> getExams(@PathVariable("studiesId") Integer studiesId,
+                                                            @RequestParam(defaultValue = "asc", required = false) String order,
+                                                            @RequestParam(defaultValue = "createdAt", required = false) String orderBy,
+                                                            @RequestParam(defaultValue = "false", required = false) Boolean archived,
+                                                            @RequestParam(defaultValue = "0", required = false) @Min(0) Integer page,
+                                                            @RequestParam(defaultValue = "50", required = false) @Min(1) @Max(100) Integer size) {
+        return ResponseEntity.ok(examService.getStudiesByAuthenticatedUser(studiesId, order, orderBy, archived, size, page));
     }
 
     @PostMapping

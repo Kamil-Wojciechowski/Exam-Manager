@@ -56,13 +56,15 @@ public class Exam {
     @NotNull
     private Integer questionPerUser;
 
-    @JsonIgnore
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
     private Boolean showResults = false;
 
     @Transient
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer points = null;
+
+    @Column(nullable = false, columnDefinition="tinyint(1) default 0")
+    private Boolean archived = false;
 
     @Column(updatable = false)
     @CreationTimestamp

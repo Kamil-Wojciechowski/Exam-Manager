@@ -58,7 +58,7 @@ public class ExamService {
     @Autowired
     private GoogleService googleService;
 
-    public GenericResponsePageable getStudiesByAuthenticatedUser(Integer studiesId, String order,  String orderBy, int size, int page) {
+    public GenericResponsePageable getStudiesByAuthenticatedUser(Integer studiesId, String order, String orderBy, Boolean archived, int size, int page) {
 
         Studies studies = fetchStudies(studiesId);
 
@@ -74,7 +74,7 @@ public class ExamService {
             sort = Sort.by(Sort.Order.desc(orderBy));
         }
 
-        Page<Exam> result = examRepository.findAllByStudies(studies, PageRequest.of(page, size, sort));
+        Page<Exam> result = examRepository.findAllByStudiesAndArchived(studies, archived, PageRequest.of(page, size, sort));
 
         return GenericResponsePageable.builder()
                 .code(200)
@@ -332,11 +332,18 @@ public class ExamService {
 
         validateQuestionMetadata(exam.getQuestionMetadata().getId());
 
-        if(studies.getClassroomId() != null && exam.getCourseWorkId() != null) {
-            googleService.deleteCourseWork(studies.getClassroomId(), exam.getCourseWorkId());
+        if(exam.getArchived()) {
+            if(studies.getClassroomId() != null && exam.getCourseWorkId() != null) {
+                googleService.deleteCourseWork(studies.getClassroomId(), exam.getCourseWorkId());
+            }
+
+            examRepository.delete(exam);
+        } else {
+            exam.setArchived(true);
+
+            examRepository.save(exam);
         }
 
-        examRepository.delete(exam);
     }
 
     @PreAuthorize("hasRole('TEACHER')")

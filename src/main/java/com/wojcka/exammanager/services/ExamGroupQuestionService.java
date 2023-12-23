@@ -212,17 +212,20 @@ public class ExamGroupQuestionService {
         Integer sumPoints = 0;
 
         for(ExamGroupQuestion item : examGroupQuestions) {
-            if(item.getQuestion().questionType.equals(QuestionType.SINGLE_ANSWER) || item.getQuestion().questionType.equals(QuestionType.MULTIPLE_ANSWERS)) {
-                ExamGroupQuestion examGroupQuestion = examGroupQuestionRepository.findExamGroupQuestionByExamGroupAndId(examGroup, item.getId()).orElse(null);
+            ExamGroupQuestion examGroupQuestion = examGroupQuestionRepository.findExamGroupQuestionByExamGroupAndId(examGroup, item.getId()).orElse(new ExamGroupQuestion());
 
-                if (examGroupQuestion != null) {
-                    item.getAnswer().forEach((answer) -> {
-                        answer.setExamGroupQuestion(examGroupQuestion);
-                    });
+            if (examGroupQuestion != null) {
 
-                    List<ExamGroupQuestionAnswer> answers = examGroupQuestionAnswerRepository.saveAll(item.getAnswer());
+                if (examGroupQuestion.getQuestion().questionType.equals(QuestionType.SINGLE_ANSWER) || examGroupQuestion.getQuestion().questionType.equals(QuestionType.MULTIPLE_ANSWERS)) {
 
-                    sumPoints += validatePoints(examGroupQuestion, answers);
+                        item.getAnswer().forEach((answer) -> {
+                            answer.setExamGroupQuestion(examGroupQuestion);
+                        });
+
+                        List<ExamGroupQuestionAnswer> answers = examGroupQuestionAnswerRepository.saveAll(item.getAnswer());
+
+                        sumPoints += validatePoints(examGroupQuestion, answers);
+
                 }
             }
         }
