@@ -68,6 +68,12 @@ public class ExamGroupQuestionService {
 
         Page<ExamGroupQuestion> result = examGroupQuestionRepository.findAllByExamGroup(examGroup, PageRequest.of(page, size));
 
+        if(page.equals(0)) {
+            examGroup.setStarted(true);
+
+            examGroupRepository.save(examGroup);
+        }
+
         result.getContent().forEach(item -> {
             item.getQuestion().setQuestionMetadata(null);
             item.getQuestion().getAnswers().forEach(answer -> {

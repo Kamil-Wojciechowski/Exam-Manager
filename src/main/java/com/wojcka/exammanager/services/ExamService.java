@@ -225,6 +225,7 @@ public class ExamService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
     }
+
     public GenericResponse get(Integer studiesId, Integer examId) {
         Studies studies = fetchStudies(studiesId);
 
@@ -234,11 +235,11 @@ public class ExamService {
 
         Exam exam = getExam(examId, studies);
 
-        ExamGroup examGroup = examGroupRepository.findExamGroupByExamAndStudiesUser(exam, studiesUser).orElseThrow(() -> {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
-        });
-
         if(!studiesUser.getOwner() & exam.getShowResults()) {
+            ExamGroup examGroup = examGroupRepository.findExamGroupByExamAndStudiesUser(exam, studiesUser).orElseThrow(() -> {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
+            });
+
             exam.setPoints(examGroup.getPoints());
         }
 

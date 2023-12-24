@@ -38,6 +38,8 @@ public class ExamGroup {
             orphanRemoval = true)
     private List<ExamGroupQuestion> examGroupQuestionList;
 
+    private Boolean started;
+
     private Boolean sent;
 
     private Integer points;
