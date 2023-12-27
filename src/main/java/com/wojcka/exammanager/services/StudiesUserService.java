@@ -222,7 +222,7 @@ public class StudiesUserService {
                     if (csvRecord.size() >= csvParser.getHeaderMap().size()) {
 
                         studiesUserList.add(processSingleEmail(User.builder()
-                                .email(csvRecord.get("email"))
+                                .email(csvRecord.get("email").toLowerCase())
                                 .firstname(csvRecord.get("firstname"))
                                 .lastname(csvRecord.get("lastname"))
                                 .expired(false)

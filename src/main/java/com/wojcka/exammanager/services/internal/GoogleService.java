@@ -368,9 +368,6 @@ public class GoogleService {
         } else {
             throw new ResponseStatusException(response.getStatusCode(), response.getBody());
         }
-
-        //TODO: LIST https://developers.google.com/classroom/reference/rest/v1/courses.courseWork.studentSubmissions/list?hl=pl&apix_params=%7B"courseId"%3A"590591522251"%2C"courseWorkId"%3A"637937802917"%7D
-        //TODO: TO FETCH USERS INFO AND THEN CONNECT submissionId in EXAM GROUP in previous class
     }
 
     public void publishResults(String classroomId, String courseWorkId, String submissionId, StudentSubmissions studentSubmissions) {
@@ -389,7 +386,5 @@ public class GoogleService {
         if (response.getStatusCode() != HttpStatus.OK) {
             throw new ResponseStatusException(response.getStatusCode(), response.getBody());
         }
-        //https://developers.google.com/classroom/reference/rest/v1/courses.courseWork.studentSubmissions/patch?hl=pl&apix_params=%7B"courseId"%3A"590591522251"%2C"courseWorkId"%3A"637937802917"%2C"id"%3A"Cg4I4rrx2soEEKW9ucDIEg"%2C"updateMask"%3A"assignedGrade"%2C"resource"%3A%7B"state"%3A"RETURNED"%2C"assignedGrade"%3A20%7D%7D
-        //TODO: Post results to google classroom courseWork
     }
 }
