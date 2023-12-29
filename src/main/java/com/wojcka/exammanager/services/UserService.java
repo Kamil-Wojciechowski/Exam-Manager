@@ -58,13 +58,13 @@ public class UserService {
 
     private StrongTextEncryptor textEncryptor;
 
-    @Value("${spring.jpa.auth.expiration.activation}")
+    @Value(value = "${spring.jpa.auth.expiration.activation}")
     private Long activationExpiration;
 
-    @Value("${spring.mail.frontendUrl.activation}")
+    @Value("${spring.mail.frontendUrl.activation")
     private String activationUrl;
 
-    @Value("spring.secret")
+    @Value("${spring.secret}")
     private String secretKey;
 
     public GenericResponsePageable getUsers(String role, String firstname, String lastname, String email, Integer page, Integer size) {
@@ -87,7 +87,7 @@ public class UserService {
         return GenericResponsePageable.builder()
                 .code(200)
                 .status("OK")
-                .data(result.get())
+                .data(result.get().toList())
                 .page(page)
                 .size(size)
                 .hasNext(result.hasNext())

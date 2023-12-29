@@ -37,7 +37,7 @@ public class StudiesService {
     public GenericResponsePageable get(Integer page, Integer size) {
         User user = getUserFromAuth();
 
-        Page<Studies> pageable = studiesRepository.getByUser(user.getId() ,PageRequest.of(page, size));
+        Page<Studies> pageable = studiesRepository.getByUser(user.getId(), PageRequest.of(page, size));
 
         pageable.getContent().forEach((item) -> {
             List<StudiesUser> studiesUserList = filterOwner(item.getStudiesUserList(), user);
@@ -48,7 +48,7 @@ public class StudiesService {
         return GenericResponsePageable.builder()
                 .code(200)
                 .status("OK")
-                .data(pageable.get())
+                .data(pageable.get().toList())
                 .page(page)
                 .size(size)
                 .hasNext(pageable.hasNext())

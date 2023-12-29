@@ -114,7 +114,7 @@ public class StudiesUserService {
         return GenericResponsePageable.builder()
                 .code(200)
                 .status("OK")
-                .data(result.get())
+                .data(result.get().toList())
                 .page(page)
                 .size(size)
                 .hasNext(result.hasNext())
