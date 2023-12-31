@@ -23,4 +23,7 @@ public class ExamGroupQuestionAnswer {
 
     @ManyToOne
     private QuestionAnswer questionAnswer;
+
+    @Column(columnDefinition = "TEXT")
+    private String manualAnswer;
 }

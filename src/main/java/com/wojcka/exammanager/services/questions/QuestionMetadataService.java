@@ -36,11 +36,14 @@ public class QuestionMetadataService {
     private QMOwnerRepository qmOwnerRepository;
 
     public GenericResponsePageable get(int page, int size) {
+        log.info("Getting Questions Metadata starts");
         Pageable pageable = PageRequest.of(page,size);
 
         User user = getUserFromAuth();
 
         Page questionMetadata = questionMetadataRepository.findAllByUser(user.getId(), pageable);
+
+        log.info("Getting Questions Metadata ends");
 
         return GenericResponsePageable.builder()
                 .code(200)
@@ -61,6 +64,7 @@ public class QuestionMetadataService {
 
     private void createOwnership(QuestionMetadata request) {
         User user = getUserFromAuth();
+        log.info("Creating ownership for user: " + user.getId() + " for metadata: " + request.getId());
 
         QuestionMetadataOwnership ownership = QuestionMetadataOwnership.builder()
                 .questionMetadata(request)
@@ -68,29 +72,34 @@ public class QuestionMetadataService {
                 .user(user)
                 .build();
 
-        ownership = qmOwnerRepository.save(ownership);
+        qmOwnerRepository.save(ownership);
 
-        log.info(ObjectToJson.toJson(ownership));
-        log.info("Owner = " + ownership.getUser().toString());
+        log.info("Creating ownership for user ends");
+
     }
 
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse create(QuestionMetadata request) {
+        log.info("Creating Question Metadata starts");
         request = questionMetadataRepository.save(request);
-
-        log.info(ObjectToJson.toJson(request));
 
         createOwnership(request);
 
+        log.info("Creating Question Metadata ends");
         return GenericResponse.builder().code(201).status("CREATED").data(request).build();
     }
 
     public GenericResponse getById(Integer id) {
+        log.info("Getting Question Metadata by id starts: " + id);
+
         QuestionMetadata questionMetadata = questionMetadataRepository.findById(id).orElseThrow(() -> {
+            log.warn("Item could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
 
+        log.info("Getting Question Metadata by id ends");
         return GenericResponse.builder()
                 .code(200)
                 .status("OK")
@@ -101,6 +110,8 @@ public class QuestionMetadataService {
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
     public Void update(QuestionMetadata request) {
+        log.info("Update Question Metadata starts: " + request.getId());
+
         User user = getUserFromAuth();
 
         if(request.isIdEmpty()) {
@@ -109,30 +120,39 @@ public class QuestionMetadataService {
             createOwnership(request);
         } else {
             QuestionMetadataOwnership ownership = qmOwnerRepository.findByUserAndQM(request.getId(), user.getId()).orElseThrow(() -> {
+                log.warn("Ownership not found");
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
             });
 
             if(ownership.isEnoughToAccess()) {
                 request = questionMetadataRepository.save(request);
             } else {
+                log.warn("User does not contain permissions");
+                log.warn(user.getId().toString());
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
             }
         }
 
-        log.info(ObjectToJson.toJson(request));
+        log.info("Update Question Metadata ends");
 
         return null;
     }
 
     @PreAuthorize("hasRole('TEACHER')")
     public Void deleteById(Long id) {
+        log.info("Delete Question Metadata starts: " + id);
+
         User user = getUserFromAuth();
 
         QuestionMetadata questionMetadata = questionMetadataRepository.findById(id.intValue()).orElseThrow(() -> {
+            log.warn("Item could not found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
 
         QuestionMetadataOwnership ownership = qmOwnerRepository.findByUserAndQM(questionMetadata.getId(), user.getId()).orElseThrow(() -> {
+            log.warn("Ownership not found");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         });
 
@@ -140,11 +160,20 @@ public class QuestionMetadataService {
             try {
                 questionMetadataRepository.delete(questionMetadata);
             } catch (RuntimeException exception) {
+                log.warn("User is not an owner of this item.");
+                log.warn(user.getId().toString());
+
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("can_not_delete"));
             }
         } else {
+            log.warn("User with no access try to delete database");
+            log.warn(user.getId().toString());
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         }
+
+        log.info("Delete Question Metadata ends");
+
 
         return null;
     }

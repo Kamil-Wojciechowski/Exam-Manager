@@ -45,7 +45,7 @@ public class ExamGroupService {
         validateOwner(exam);
 
         if(!exam.getStudies().getId().equals(studiesId)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_forbidden"));
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
         }
 
         return exam;
@@ -60,7 +60,7 @@ public class ExamGroupService {
         return GenericResponsePageable.builder()
                 .code(200)
                 .status("OK")
-                .data(result.get())
+                .data(result.get().toList())
                 .page(page)
                 .size(size)
                 .hasNext(result.hasNext())

@@ -5,6 +5,7 @@ import com.wojcka.exammanager.models.*;
 import com.wojcka.exammanager.repositories.*;
 import com.wojcka.exammanager.schemas.responses.GenericResponse;
 import com.wojcka.exammanager.schemas.responses.GenericResponsePageable;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +22,7 @@ import java.util.List;
 
 
 @Service
+@Slf4j
 public class StudiesService {
     @Autowired
     private StudiesRepository studiesRepository;
@@ -35,6 +37,7 @@ public class StudiesService {
     }
 
     public GenericResponsePageable get(Integer page, Integer size) {
+        log.info("Getting studies by user starts");
         User user = getUserFromAuth();
 
         Page<Studies> pageable = studiesRepository.getByUser(user.getId(), PageRequest.of(page, size));
@@ -44,6 +47,8 @@ public class StudiesService {
 
             item.setOwner(!studiesUserList.isEmpty());
         });
+
+        log.info("Getting studies by user ends");
 
         return GenericResponsePageable.builder()
                 .code(200)
@@ -62,6 +67,8 @@ public class StudiesService {
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse post(Studies studies) {
+        log.info("Creating studies starts");
+
         studies = studiesRepository.save(studies);
 
         StudiesUser studiesUser = StudiesUser.builder()
@@ -72,11 +79,16 @@ public class StudiesService {
 
         studiesUserRepository.save(studiesUser);
 
+        log.info("Creating studies ends");
+
         return GenericResponse.created(studies);
     }
 
     private Studies getStudiesById(Integer id) {
+
         Studies studies =  studiesRepository.findById(id).orElseThrow(() -> {
+            log.warn("Item could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
 
@@ -88,7 +100,11 @@ public class StudiesService {
     }
 
     public GenericResponse getById(Integer id) {
+        log.info("Getting studies by id starts: " + id);
+
         Studies studies = getStudiesById(id);
+
+        log.info("Getting studies by id ends");
 
         return GenericResponse.ok(studies);
     }
@@ -99,12 +115,16 @@ public class StudiesService {
 
     private void validateOwnership(Studies studies) {
         studiesUserRepository.findByUserAndStudiesAndOwner(getUserFromAuth(), studies, true).orElseThrow(() -> {
+            log.warn("User does not have access for this item");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
         });
     }
 
     @PreAuthorize("hasRole('TEACHER')")
     public void update(Integer id, Studies request) {
+        log.info("Updating studies by id starts: " + id);
+
         Studies studies = getStudiesById(id);
 
         validateOwnership(studies);
@@ -112,10 +132,13 @@ public class StudiesService {
         request.setId(id);
 
         studiesRepository.save(request);
+
+        log.info("Updating studies by id ends");
     }
 
     @PreAuthorize("hasRole('TEACHER')")
     public void delete(Integer id) {
+        log.info("Deleting studies by id starts: " + id);
 
         Studies studies = getStudiesById(id);
 
@@ -124,7 +147,12 @@ public class StudiesService {
         try {
             studiesRepository.delete(studies);
         } catch (RuntimeException exception) {
+            log.info("Item could not be deleted");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("can_not_delete"));
         }
+
+        log.info("Deleting studies by id ends");
+
     }
 }

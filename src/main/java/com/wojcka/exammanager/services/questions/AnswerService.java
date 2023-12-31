@@ -42,17 +42,24 @@ public class AnswerService {
     }
 
     private Void validateOwnership(Integer metadataId) {
+        log.info("Validate ownership starts");
         if(!questionMetadataRepository.existsById(metadataId)) {
+            log.warn("Item could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         }
 
         User user = getUserFromAuth();
 
         QuestionMetadataOwnership qmOwnership = qmOwnershipRepository.findByUserAndQM(metadataId, user.getId()).orElseThrow(() -> {
+            log.warn("Ownership for user could not be found");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         });
 
         if(!qmOwnership.isEnoughToAccess()) {
+            log.warn("User does not have enough access.");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         }
 
@@ -60,7 +67,9 @@ public class AnswerService {
     }
 
     private Question getQuestion(Integer metadataId, Integer id) {
+        log.info("Getting question " + id);
         return questionRepository.findByMetadataIdAndId(metadataId, id).orElseThrow(() -> {
+            log.warn("Item could not be found: " + id);
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
     }
@@ -74,10 +83,10 @@ public class AnswerService {
 
     private void validateNumberOfQuestionsAndType(Question question, QuestionAnswer request, QuestionAnswer answer) {
         if(request.getCorrect() || answer != null) {
+            log.info("Validation of correct questions and types.");
             List<QuestionAnswer> answers = question.getAnswers();
 
                 answers = answers.stream().filter(item -> item.getCorrect()).toList();
-
 
                 Integer size = answers.size();
 
@@ -95,10 +104,12 @@ public class AnswerService {
 
                 if (question.isTypeForSingleAnswer() && (answers.size() == 1) && request.getCorrect()) {
                     if (answer == null) {
+                        log.warn("Correct answer can be only one!");
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
                     }
 
                     if (!answer.getCorrect()) {
+                        log.warn("Correct answer can be only one!");
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
                     }
                 }
@@ -109,6 +120,7 @@ public class AnswerService {
 
 
     public GenericResponse post(Integer metadataId, Integer questionId, QuestionAnswer request) {
+        log.info("Creating answer starts");
         validateOwnership(metadataId);
 
         Question question = getQuestion(metadataId, questionId);
@@ -119,15 +131,18 @@ public class AnswerService {
 
         request = answerRepository.save(request);
 
+        log.info("Creating answer ends");
         return GenericResponse.created(request);
     }
 
     public Void patch(Integer metadataId, Integer questionId, Integer answerId, QuestionAnswer request) {
+        log.info("Updating answer starts: " + answerId);
         validateOwnership(metadataId);
 
         Question question = getQuestion(metadataId, questionId);
 
         QuestionAnswer questionAnswer = answerRepository.getByIdAndQuestionId(answerId, questionId).orElseThrow(() -> {
+            log.warn("Question answer could not be found");
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
 
@@ -138,15 +153,19 @@ public class AnswerService {
 
         answerRepository.save(request);
 
+        log.info("Updating answer ends: " + answerId);
         return null;
     }
 
     public Void delete(Integer metadataId, Integer questionId, Integer answerId) {
+        log.info("Deleting answer starts: " + answerId);
+
         validateOwnership(metadataId);
 
         Question question = getQuestion(metadataId, questionId);
 
         QuestionAnswer questionAnswer = answerRepository.getByIdAndQuestionId(answerId, questionId).orElseThrow(() -> {
+            log.warn("Question answer could not be found");
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
 
@@ -160,6 +179,7 @@ public class AnswerService {
 
         answerRepository.deleteById(questionAnswer.getId());
 
+        log.info("Deleting answer ends: " + answerId);
         return null;
     }
 }

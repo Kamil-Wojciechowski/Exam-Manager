@@ -27,6 +27,7 @@ public class Question {
 
     @Valid
     @NotBlank
+    @Column(columnDefinition = "TEXT")
     public String question;
 
     @Valid
@@ -57,6 +58,8 @@ public class Question {
 
     @JsonIgnore
     public Boolean isTypeForSingleAnswer() {
-        return questionType.equals(QuestionType.SINGLE_ANSWER) || questionType.equals(QuestionType.FILE) || questionType.equals(QuestionType.OPEN_ANSWER);
+        return questionType.equals(QuestionType.SINGLE_ANSWER) ||
+//                questionType.equals(QuestionType.FILE) ||
+                questionType.equals(QuestionType.OPEN_ANSWER);
     }
 }

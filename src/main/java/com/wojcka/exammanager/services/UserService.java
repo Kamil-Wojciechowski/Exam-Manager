@@ -68,6 +68,7 @@ public class UserService {
     private String secretKey;
 
     public GenericResponsePageable getUsers(String role, String firstname, String lastname, String email, Integer page, Integer size) {
+        log.info("Get Users starts");
         Pageable pageable = PageRequest.of(page,size);
 
         role = "ROLE_" + role.toUpperCase();
@@ -84,6 +85,7 @@ public class UserService {
 
         Page result = userRepository.getByRoleAndParams(role, firstname, lastname, email, pageable);
 
+        log.info("Get Users ends");
         return GenericResponsePageable.builder()
                 .code(200)
                 .status("OK")
@@ -124,6 +126,8 @@ public class UserService {
     @PreAuthorize("hasRole('TEACHER')")
     @Transactional
     public GenericResponse addUser(User request, Boolean teacher) {
+        log.info("Creating user starts");
+
         User user = userRepository.findByEmail(request.getEmail()).orElse(User.builder()
                         .email(request.getEmail().toLowerCase())
                         .firstname(request.getFirstname())
@@ -134,6 +138,8 @@ public class UserService {
                 .build());
 
         if(user.getId() != null ) {
+            log.warn("User already exists");
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("email_already_exists"));
         }
 
@@ -172,6 +178,7 @@ public class UserService {
 
         user.setUserRoleGroups(userGroups);
 
+        log.info("Creating user ends");
         return GenericResponse.created(user);
     }
 
@@ -181,10 +188,14 @@ public class UserService {
 
     private User validateUser(UUID uuid) {
         User user = userRepository.findById(uuid).orElseThrow(() -> {
+            log.warn("User could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("user_not_found"));
         });
 
         if(user.equals(getUserFromAuth())) {
+            log.warn("You can not edit your own user.");
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("user_not_editable"));
         }
 
@@ -194,6 +205,8 @@ public class UserService {
     @PreAuthorize("hasRole('TEACHER')")
     @Transactional
     public void changeRole(UUID uuid) {
+        log.info("User change role starts: " + uuid.toString() );
+
         User user = validateUser(uuid);
 
         Boolean isStudent = user.getUserRoleGroups().stream().filter(item -> item.getGroup().getKey().contains("TEACHER")).toList().isEmpty();
@@ -203,16 +216,23 @@ public class UserService {
         userGroup.setGroup(getGroup(isStudent));
 
         userGroupRepository.save(userGroup);
+
+        log.info("User change role ends");
     }
 
     @PreAuthorize("hasRole('TEACHER')")
     @Transactional
     public void deactivateUser(UUID uuid) {
+        log.info("User deactivate/activate starts: " + uuid.toString());
+
         User user = validateUser(uuid);
 
         user.setLocked(!user.isLocked());
 
         userRepository.save(user);
+
+        log.info("User deactivate/activate ends");
+
     }
 
 }

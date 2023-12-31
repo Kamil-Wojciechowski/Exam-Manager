@@ -59,7 +59,7 @@ public class ExamService {
     private GoogleService googleService;
 
     public GenericResponsePageable getStudiesByAuthenticatedUser(Integer studiesId, String order, String orderBy, Boolean archived, int size, int page) {
-
+        log.info("Getting Studies by user starts");
         Studies studies = fetchStudies(studiesId);
 
         studiesUserRepository.findByUserAndStudies(getUserFromAuth(), studies).orElseThrow(() -> {
@@ -75,6 +75,8 @@ public class ExamService {
         }
 
         Page<Exam> result = examRepository.findAllByStudiesAndArchived(studies, archived, PageRequest.of(page, size, sort));
+
+        log.info("Getting Studies by user ends");
 
         return GenericResponsePageable.builder()
                 .code(200)
@@ -102,6 +104,8 @@ public class ExamService {
         Studies studies = fetchStudies(studiesId);
 
         studiesUserRepository.findByUserAndStudiesAndOwner(getUserFromAuth(), studies, true).orElseThrow(() -> {
+            log.warn("User is not an owner");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
         });
 
@@ -110,14 +114,20 @@ public class ExamService {
 
     private QuestionMetadata validateQuestionMetadata(Integer questionMetadataId) {
         QuestionMetadata questionMetadata =  questionMetadataRepository.findById(questionMetadataId).orElseThrow(() -> {
+            log.warn("Question metadata could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
 
         QuestionMetadataOwnership questionMetadataOwnership = qmOwnerRepository.findByUserAndAndQuestionMetadata(getUserFromAuth(), questionMetadata).orElseThrow(() -> {
+            log.warn("User could not be found in ownership");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
         });
 
         if(!questionMetadataOwnership.isEnoughToAccess()) {
+            log.warn("User does not have permission");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
         }
 
@@ -126,21 +136,28 @@ public class ExamService {
 
     private void validateDateRange(Exam exam) {
         if(exam.getStartAt().isAfter(exam.getEndAt())) {
+            log.warn("Exam wrong date range order");
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("dates_wrong_order"));
         }
 
         if(exam.getStartAt().isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("can_not_update"));
+            log.warn("Exam can not be updated, because it is live.");
 
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("can_not_update"));
         }
     }
 
     private void addUsersToExamGroup(Studies studies, QuestionMetadata questionMetadata ,Exam exam) {
+        log.info("Adding users to exam group starts");
+
         List<StudiesUser> studiesUserList = studiesUserRepository.findByStudiesAndOwner(studies, false);
 
         List<StudentSubmissions> studentSubmissions;
 
         if(studies.getClassroomId() != null && exam.getCourseWorkId() != null) {
+            log.info("Getting users from classroom");
+
             studentSubmissions = googleService.listAssignments(studies.getClassroomId(), exam.getCourseWorkId());
         } else {
             studentSubmissions = null;
@@ -175,12 +192,15 @@ public class ExamService {
 
             examGroupQuestionRepository.saveAll(examGroupQuestionList);
         });
+
+        log.info("Adding users to exam group ends");
     }
 
     private void validateQuestionsNumber(Exam exam) {
         Integer countValid = questionRepository.countAllByQuestionMetadataAndValidAndArchived(exam.getQuestionMetadata(), true, false);
 
         if(exam.getQuestionPerUser() > countValid) {
+            log.warn("Database of questions does not have questions to provide");
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("to_many_count"));
         }
     }
@@ -188,6 +208,8 @@ public class ExamService {
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse post(Integer studiesId, Exam exam) {
+        log.info("Creating exam starts");
+
         Studies studies = validateStudies(studiesId);
         QuestionMetadata questionMetadata = validateQuestionMetadata(exam.getQuestionMetadata().getId());
 
@@ -200,6 +222,8 @@ public class ExamService {
         exam = examRepository.save(exam);
 
         if(studies.getClassroomId() != null && !studies.getClassroomId().isEmpty()) {
+            log.info("Creating Coursework");
+
             CourseWork courseWork = CourseWork.builder()
                     .title(exam.getName())
                     .description(Translator.toLocale("exam_description"))
@@ -211,25 +235,35 @@ public class ExamService {
 
             courseWork = googleService.createCourseWork(studies.getClassroomId(), courseWork);
 
+            log.info("Course work created");
+
             exam.setCourseWorkId(courseWork.getId());
             examRepository.save(exam);
         }
 
         addUsersToExamGroup(studies, questionMetadata, exam);
 
+        log.info("Creating exam ends");
         return GenericResponse.created(exam);
     }
 
     private Exam getExam(Integer examId, Studies studies) {
         return examRepository.findByIdAndStudies(examId, studies).orElseThrow(() -> {
+            log.warn("Exam could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
     }
 
     public GenericResponse get(Integer studiesId, Integer examId) {
+        log.info("Getting exam by id starts");
+        log.info("Studies " + studiesId + " exam " + examId);
+
         Studies studies = fetchStudies(studiesId);
 
         StudiesUser studiesUser = studiesUserRepository.findByUserAndStudies(getUserFromAuth(), studies).orElseThrow(() -> {
+            log.info("User does not have permission to view this item");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
         });
 
@@ -237,11 +271,15 @@ public class ExamService {
 
         if(!studiesUser.getOwner() & exam.getShowResults()) {
             ExamGroup examGroup = examGroupRepository.findExamGroupByExamAndStudiesUser(exam, studiesUser).orElseThrow(() -> {
+                log.info("User does not have permission to view this item");
+
                 throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
             });
 
             exam.setPoints(examGroup.getPoints());
         }
+
+        log.info("Getting exam by id ends");
 
         return GenericResponse.ok(exam);
     }
@@ -283,6 +321,9 @@ public class ExamService {
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
     public void patch(Integer studiesId, Integer examId, Exam request) {
+        log.info("Updating exam by id starts");
+        log.info("Studies " + studiesId + " exam " + examId);
+
         validateDateRange(request);
 
         Studies studies = validateStudies(studiesId);
@@ -322,11 +363,15 @@ public class ExamService {
 
         }
 
+        log.info("Updating exam by id Ends");
+
         examRepository.save(request);
     }
 
     @PreAuthorize("hasRole('TEACHER')")
     public void delete(Integer studiesId, Integer examId) {
+        log.info("Deleting exam by id starts");
+        log.info("Studies " + studiesId + " exam " + examId);
         Studies studies = validateStudies(studiesId);
 
         Exam exam = getExam(examId, studies);
@@ -345,30 +390,41 @@ public class ExamService {
             examRepository.save(exam);
         }
 
+        log.info("Deleting exam by id ends");
     }
 
     @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse postAnnoucmnet(Integer studiesId, Integer examId, Annoucment annoucment) {
+        log.info("Creating announcement starts");
+        log.info("Studies " + studiesId + " exam " + examId);
 
         Studies studies = validateStudies(studiesId);
         Exam exam = getExam(examId, studies);
 
         googleService.createAnnocument(studies.getClassroomId(), annoucment);
 
+        log.info("Creating announcement ends");
         return GenericResponse.created(annoucment);
     }
 
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
     public void postResults(Integer studiesId, Integer examId) {
+        log.info("Creating results starts");
+        log.info("Studies " + studiesId + " exam " + examId);
+
         Studies studies = validateStudies(studiesId);
         Exam exam = getExam(examId, studies);
 
         if(exam.getShowResults()) {
+            log.info("Exam is already published");
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("exam_already_published"));
         }
 
-        if(exam.getEndAt().isBefore(LocalDateTime.now())) {
+        if(exam.getEndAt().isAfter(LocalDateTime.now())) {
+            log.info("Exam can not be published. It is not ended yet.");
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("exam_results_not_ready"));
         }
 
@@ -388,5 +444,7 @@ public class ExamService {
                 }
             });
         }
+
+        log.info("Creating results ends");
     }
 }

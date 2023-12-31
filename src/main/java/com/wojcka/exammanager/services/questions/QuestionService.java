@@ -54,17 +54,26 @@ public class QuestionService {
     }
 
     private QuestionMetadata validateOwnership(Integer metadataId, Boolean isMethodGet) {
+        log.info("Validate Ownership");
         QuestionMetadata questionMetadata = questionMetadataRepository.findById(metadataId).orElseThrow(() ->  {
+            log.warn("Metadata could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
 
         User user = getUserFromAuth();
 
         QuestionMetadataOwnership qmOwnership = qmOwnershipRepository.findByUserAndQM(metadataId, user.getId()).orElseThrow(() -> {
+            log.warn("User does not have access to this item");
+            log.warn(user.getId().toString());
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         });
 
         if(!isMethodGet && !qmOwnership.isEnoughToAccess()) {
+            log.warn("User does not have enough access to this item");
+            log.warn(user.getId().toString());
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         }
 
@@ -72,6 +81,8 @@ public class QuestionService {
     }
 
     public GenericResponsePageable get(Integer metadataId, Integer page, Integer size, Boolean archived) {
+        log.info("Getting question starts");
+
         Pageable pageable = PageRequest.of(page,size);
 
         validateOwnership(metadataId, true);
@@ -81,6 +92,8 @@ public class QuestionService {
         result.forEach((item) -> {
             item.questionMetadata = null;
         } );
+
+        log.info("Getting question ends");
 
         return GenericResponsePageable.builder()
                 .code(200)
@@ -95,9 +108,13 @@ public class QuestionService {
     }
 
     public GenericResponse create(Question request) {
+        log.info("Creating question starts");
+
         validateOwnership(request.getQuestionMetadata().getId(), false);
 
         request = questionRepository.save(request);
+
+        log.info("Creating question ends");
 
         return GenericResponse.builder()
                 .code(201)
@@ -108,16 +125,22 @@ public class QuestionService {
 
     private Question getQuestion(Integer metadataId, Integer id) {
         return questionRepository.findByMetadataIdAndId(metadataId, id).orElseThrow(() -> {
+            log.warn("Could not find a question: metadata " + metadataId + " id: " + id);
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
     }
 
     public GenericResponse getById(Integer metadataId, Integer id) {
+        log.info("Getting question by id starts: metadata " + metadataId + " id " + id);
+
         validateOwnership(metadataId, true);
 
         Question question = getQuestion(metadataId, id);
 
         question.setQuestionMetadata(null);
+
+        log.info("Getting question by id ends");
 
         return GenericResponse.builder()
                 .code(200)
@@ -127,11 +150,15 @@ public class QuestionService {
     }
 
     public Void upsert(Integer metadataId, Integer id, Question request) {
+        log.info("Upsetting question by id starts: metadata " + metadataId + " id " + id);
+
         validateOwnership(metadataId, false);
 
         request.setQuestionMetadata(QuestionMetadata.builder().id(metadataId).build());
 
         if(request.getAnswers().stream().filter(item -> item.getCorrect()).toList().size() > 1 && request.getQuestionType().equals(QuestionType.SINGLE_ANSWER) ) {
+            log.warn("Answer can be only one.");
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("answer_only_one"));
         }
 
@@ -145,12 +172,17 @@ public class QuestionService {
             log.info("Question was not found with provided data. Craeting new.");
         }
 
-            questionRepository.save(request);
+        questionRepository.save(request);
+
+        log.info("Upsetting question by id ends");
+
 
         return null;
     }
 
     public Void delete(Integer metadataId, Integer id, Boolean permaDelete) {
+        log.info("Deleting question by id starts: metadata " + metadataId + " id " + id);
+
         validateOwnership(metadataId, false);
 
         Question question = getQuestion(metadataId, id);
@@ -162,14 +194,19 @@ public class QuestionService {
             questionRepository.save(question);
         }
 
+        log.info("Deleting question by id ends");
+
         return null;
     }
 
     @Transactional
     public GenericResponse importCSV(Integer metadataId, MultipartFile file) {
+        log.info("Importing questions starts: metadata " + metadataId);
+
         QuestionMetadata questionMetadata = validateOwnership(metadataId, false);
 
         if(file.getContentType().equals("text/csv")) {
+            log.info("File is type CSV");
 
             try {
                 InputStreamReader reader = new InputStreamReader(file.getInputStream());
@@ -226,12 +263,18 @@ public class QuestionService {
                 }
 
             } catch (IOException ex) {
+                log.error(ex.getMessage());
+
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
             }
 
         } else {
+            log.warn("File type not supported.");
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("file_not_supported"));
         }
+
+        log.info("Importing questions ends");
 
         return GenericResponse.created(null);
     }

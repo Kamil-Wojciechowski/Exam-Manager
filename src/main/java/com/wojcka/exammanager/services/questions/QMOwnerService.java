@@ -40,27 +40,37 @@ public class QMOwnerService {
     }
 
     private void validateOwnership(Integer metadataId) {
+        log.info("Validating ownership: " + metadataId);
         User user = getUserFromAuth();
 
         questionMetadataRepository.findById(metadataId).orElseThrow(() -> {
+            log.warn("Question metadata could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
 
         QuestionMetadataOwnership qmOwnership = qmOwnerRepository.findByUserAndQM(metadataId, user.getId()).orElseThrow(() -> {
+            log.warn("Ownership could not be found");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         });
 
         if(!qmOwnership.getOwnership().equals(Ownership.OWNER)) {
+            log.warn("User is not owner");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("ownership_not_found"));
         }
     }
 
     public GenericResponsePageable get(Integer metadataId, int page, int size) {
+        log.info("Getting Ownerships of metadata starts " + metadataId);
         Pageable pageable = PageRequest.of(page,size);
 
         validateOwnership(metadataId);
 
         Page qmOwnershipPage = qmOwnerRepository.findByQuestionMetadata(metadataId, pageable);
+
+        log.info("Getting Ownerships of metadata ends");
 
         return GenericResponsePageable.builder()
                 .code(200)
@@ -76,9 +86,13 @@ public class QMOwnerService {
     }
 
     public GenericResponse post(Integer metadataId, QuestionMetadataOwnership request) {
+        log.info("Creating Ownerships for metadata starts " + metadataId);
+
         validateOwnership(metadataId);
 
         if(qmOwnerRepository.findByUserAndQM(metadataId, request.getUser().getId()).isPresent()) {
+            log.warn("User already exists for this metadata");
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("item_already_exits"));
         }
 
@@ -87,6 +101,8 @@ public class QMOwnerService {
         request.setQuestionMetadata(questionMetadata);
 
         request = qmOwnerRepository.save(request);
+
+        log.info("Creating Ownerships for metadata ends");
 
         return GenericResponse.builder()
                 .code(201)
@@ -97,11 +113,18 @@ public class QMOwnerService {
 
 
     public GenericResponse getById(Integer metadataId, Integer id) {
+        log.info("Getting Ownerships for metadata by id starts " + metadataId + " " + id);
+
         validateOwnership(metadataId);
 
         QuestionMetadataOwnership qmOwnership = qmOwnerRepository.findByMetadataIdAndId(metadataId, id).orElseThrow(() -> {
+            log.warn("Item could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
+
+        log.info("Getting Ownerships for metadata by id ends");
+
 
         return GenericResponse.builder()
                 .code(200)
@@ -111,14 +134,20 @@ public class QMOwnerService {
     }
 
     public Void patch(Integer metadataId, Integer id, QuestionMetadataOwnership request) {
+        log.info("Update of Ownerships for metadata by id starts " + metadataId + " " + id);
+
         validateOwnership(metadataId);
 
         if(qmOwnerRepository.findByMetadataIdAndId(metadataId, id).isEmpty()) {
+            log.warn("Item could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         };
 
         request.setId(id);
         request.setQuestionMetadata(QuestionMetadata.builder().id(metadataId).build());
+
+        log.info("Update of Ownerships for metadata by id ends");
 
         qmOwnerRepository.save(request);
 
@@ -126,14 +155,19 @@ public class QMOwnerService {
     }
 
     public Void delete(Integer metadataId, Integer id) {
+        log.info("Delete of Ownerships for metadata by id starts " + metadataId + " " + id);
+
         validateOwnership(metadataId);
 
         if(qmOwnerRepository.findByMetadataIdAndId(metadataId, id).isEmpty()) {
+            log.warn("Item could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         };
 
         qmOwnerRepository.deleteById(id);
 
+        log.info("Delete of Ownerships for metadata by id ends");
         return null;
     }
 }

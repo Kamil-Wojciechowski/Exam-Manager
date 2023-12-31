@@ -9,6 +9,7 @@ import com.wojcka.exammanager.repositories.*;
 import com.wojcka.exammanager.schemas.responses.GenericResponse;
 import com.wojcka.exammanager.schemas.responses.GenericResponsePageable;
 import com.wojcka.exammanager.services.internal.GoogleService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class StudiesUserService {
 
     @Autowired
@@ -91,25 +93,35 @@ public class StudiesUserService {
 
     private void validateUser(Studies studies, Boolean action) {
         StudiesUser studiesUser = studiesUserRepository.findByUserAndStudies(getUserFromAuth(), studies).orElseThrow(() -> {
+            log.warn("User could not be fund by studies");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
         });
 
         if (action && !studiesUser.getOwner()) {
+            log.warn("User does not have access to this item");
+
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, Translator.toLocale("item_forbidden"));
         }
     }
 
     private Studies getStudies(Integer studiesId) {
         return studiesRepository.findById(studiesId).orElseThrow(() -> {
+            log.warn("Studies could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
     }
     public GenericResponsePageable get(Integer studiesId, Integer page, Integer size) {
+        log.info("Getting studies user by studies, starts: " + studiesId);
+
         Studies studies = getStudies(studiesId);
 
         validateUser(studies, false);
 
         Page<StudiesUser> result = studiesUserRepository.findByStudiesOrderByIdAsc(studies, PageRequest.of(page,size));
+
+        log.info("Getting studies user by studies ends");
 
         return GenericResponsePageable.builder()
                 .code(200)
@@ -156,6 +168,8 @@ public class StudiesUserService {
 
     @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse post(Integer studiesId, StudiesUser studiesUser) {
+        log.info("Creating studies user starts: " + studiesId);
+
         Studies studies = getStudies(studiesId);
 
         validateUser(studies, true);
@@ -166,21 +180,30 @@ public class StudiesUserService {
 
         checkExam(studiesUser, studies);
 
+        log.info("Creating studies user ends");
+
+
         return GenericResponse.created(studiesUser);
     }
 
     private StudiesUser getStudiesUsserByStudiesAndId(Studies studies, Integer studiesUserId) {
         return studiesUserRepository.findByStudiesAndId(studies, studiesUserId).orElseThrow(() -> {
+            log.warn("Studies user could not be found");
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, Translator.toLocale("item_not_found"));
         });
     }
 
     public GenericResponse get(Integer studiesId, Integer studiesUserId) {
+        log.info("Updating studies user starts: studiesId " + studiesId + " studies user " + studiesUserId);
+
         Studies studies = getStudies(studiesId);
 
         validateUser(studies,true);
 
         StudiesUser studiesUser = getStudiesUsserByStudiesAndId(studies, studiesUserId);
+
+        log.info("Updating studies user ends");
 
         return GenericResponse.ok(studiesUser);
     }
@@ -188,11 +211,15 @@ public class StudiesUserService {
 
     @PreAuthorize("hasRole('TEACHER')")
     public void delete(Integer studiesId, Integer studiesUserId) {
+        log.info("Deleting studies user starts: studiesId " + studiesId + " studies user " + studiesUserId);
+
         Studies studies = getStudies(studiesId);
 
         validateUser(studies ,true);
 
         StudiesUser studiesUser = getStudiesUsserByStudiesAndId(studies, studiesUserId);
+
+        log.info("Deleting studies user ends");
 
         studiesUserRepository.delete(studiesUser);
     }
@@ -204,6 +231,8 @@ public class StudiesUserService {
 
     @Transactional
     public GenericResponse importUsersCsv(Integer studiesId, MultipartFile file) {
+        log.info("Importing users starts: studiesId " + studiesId);
+
         Studies studies = getStudies(studiesId);
 
         validateUser(studies, true);
@@ -211,6 +240,7 @@ public class StudiesUserService {
         List<StudiesUser> studiesUserList = new ArrayList<>();
 
         if(file.getContentType().equals("text/csv")) {
+            log.info("File is type CSV");
 
             try {
                 InputStreamReader reader = new InputStreamReader(file.getInputStream());
@@ -233,12 +263,18 @@ public class StudiesUserService {
                 }
 
             } catch (IOException ex) {
+                log.error(ex.getMessage());
+
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR");
             }
 
         } else {
+            log.warn("File not supported");
+
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, Translator.toLocale("file_not_supported"));
         }
+
+        log.info("Importing users ends: studiesId " + studiesId);
 
         return GenericResponse.created(studiesUserList);
     }
@@ -300,6 +336,8 @@ public class StudiesUserService {
     @Transactional
     @PreAuthorize("hasRole('TEACHER')")
     public GenericResponse importUsersGoogle(Integer studiesId) {
+        log.info("Importing google users starts: studiesId " + studiesId);
+
         Studies studies = getStudies(studiesId);
         validateUser(studies, true);
 
@@ -319,6 +357,7 @@ public class StudiesUserService {
             });
         }
 
+        log.info("Importing google users ends: studiesId " + studiesId);
 
         return GenericResponse.created(listOfProccessed);
     }

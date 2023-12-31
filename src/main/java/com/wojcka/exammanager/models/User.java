@@ -64,7 +64,7 @@ public class User implements UserDetails
 
     @JsonProperty
     public Boolean isGoogleConnected() {
-        return (googleAccessToken != null) && !googleAccessToken.isEmpty();
+        return googleAccessToken != null;
     }
     @JsonProperty
     public List<String> currentRoles() {
