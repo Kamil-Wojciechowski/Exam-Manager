@@ -63,7 +63,7 @@ public class Exam {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private Integer points = null;
 
-    @Column(nullable = false, columnDefinition="tinyint(1) default 0")
+    @Column(nullable = false, columnDefinition="BOOLEAN DEFAULT false")
     private Boolean archived = false;
 
     @Column(updatable = false)

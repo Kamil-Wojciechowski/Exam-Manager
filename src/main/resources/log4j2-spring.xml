@@ -26,7 +26,7 @@
             configuration. It is an appender to send the logs as GELF messages
             to a Graylog server.
         -->
-        <Gelf name="Graylog" host="udp:127.0.0.1" port="12201" version="1.1"
+        <Gelf name="Graylog" host="${env:GRAYLOG_HOST}" port="${env:GRAYLOG_PORT}" version="1.1"
               extractStackTrace="true" filterStackTrace="true">
             <!--
                 logstash-gelf allows additional fields with values obtained from log4j2

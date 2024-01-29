@@ -36,31 +36,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String email;
         try {
-            if(authHeader == null || !authHeader.startsWith("Bearer ")) {
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-                jwt = authHeader.substring(7);
-                jwtDecoder = new JwtDecoder(jwt);
-
+            jwt = authHeader.substring(7);
+            jwtDecoder = new JwtDecoder(jwt);
 
             email = jwtDecoder.getEmail();
-            if(email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(email);
 
-                    if (!jwtDecoder.getExpired() && email.equals(userDetails.getUsername())) {
-                        NDC.push(email);
-                        NDC.push(ipAddress);
+                if (!jwtDecoder.getExpired() && email.equals(userDetails.getUsername())) {
+                    NDC.push(email);
+                    NDC.push(ipAddress);
 
-                        UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-                        authToken.setDetails(
-                                new WebAuthenticationDetailsSource().buildDetails(request)
-                        );
+                    authToken.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
 
-                        SecurityContextHolder.getContext().setAuthentication(authToken);
-                    }
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
         } catch (ExpiredJwtException ex) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -68,7 +67,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        filterChain.doFilter(request, response);
         NDC.pop();
+        filterChain.doFilter(request, response);
+        NDC.clear();
     }
 }

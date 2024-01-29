@@ -7,6 +7,7 @@ import com.wojcka.exammanager.schemas.responses.GenericResponse;
 import com.wojcka.exammanager.services.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +16,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping(value = "/api/v1/auth", produces = {"application/json;charset=UTF-8"})
-@RequiredArgsConstructor
 public class AuthenticationController {
 
-    private final AuthenticationService service;
+    @Autowired
+    private AuthenticationService service;
 
     @PostMapping("login")
     public ResponseEntity<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request, @RequestHeader(value = "X-Forwarded-For", required = false, defaultValue = "0.0.0.0") String addressIp) {
