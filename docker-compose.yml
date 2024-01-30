@@ -4,18 +4,18 @@ services:
   postgresql:
     image: postgres:latest
     environment:
-      POSTGRES_USER: ***  # Replace with your desired PostgreSQL user
-      POSTGRES_PASSWORD: ***  # Replace with your desired PostgreSQL password
+      POSTGRES_USER: ***  
+      POSTGRES_PASSWORD: *** 
     volumes:
-      - ./initdb:/docker-entrypoint-initdb.d  # Mounts the initdb directory to run init-db.sql
-      - postgres_data:/var/lib/postgresql/data  # Persistent volume for PostgreSQL data
+      - ./initdb:/docker-entrypoint-initdb.d  
+      - postgres_data:/var/lib/postgresql/data 
     ports:
       - "5432:5432"
 
   mongo:
     image: mongo:3
     volumes:
-      - mongo_data:/data/db  # Persistent volume for MongoDB data
+      - mongo_data:/data/db 
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.5
@@ -30,13 +30,13 @@ services:
         soft: -1
         hard: -1
     volumes:
-      - es_data:/usr/share/elasticsearch/data  # Persistent volume for Elasticsearch data
+      - es_data:/usr/share/elasticsearch/data 
 
   graylog:
     image: graylog/graylog:3.2
     environment:
       - GRAYLOG_PASSWORD_SECRET=***
-      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      - GRAYLOG_ROOT_PASSWORD_SHA2=***
       - GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/
     depends_on:
       - mongo
@@ -49,15 +49,15 @@ services:
       - "12201:12201/udp"
 
   springbootapp:
-    build: .  # Assumes Dockerfile for Spring Boot app is in the same directory as docker-compose.yml
+    build: . 
     depends_on:
       - postgresql
       - graylog
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5432/exammanager
       SPRING_CONFIG_NAME: application-test
-      JASYPT_ENCRYPTOR_PASSWORD: ***
-      GRAYLOG_HOST: graylog
+      JASYPT_ENCRYPTOR_PASSWORD: NwJQzsaXE7861aug
+      GRAYLOG_HOST: graylog 
       GRAYLOG_PORT: 12201
     ports:
       - "8080:8080"
